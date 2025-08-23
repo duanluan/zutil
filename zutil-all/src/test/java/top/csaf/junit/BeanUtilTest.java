@@ -133,6 +133,15 @@ public class BeanUtilTest {
     assertEquals("1", BeanUtil.getPropertyStr(testBean, TestBean::getName));
   }
 
+  @DisplayName("判断对象是否包含某个属性")
+  @Test
+  void hasProperty() {
+    TestBean testBean = new TestBean();
+
+    assertTrue(BeanUtil.hasProperty(testBean, "name"));
+    assertFalse(BeanUtil.hasProperty(testBean, "name1"));
+  }
+
   @DisplayName("根据属性名设置属性值")
   @Test
   void setProperty() {

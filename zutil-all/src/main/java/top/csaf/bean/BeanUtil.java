@@ -253,6 +253,21 @@ public class BeanUtil extends org.springframework.beans.BeanUtils {
   }
 
   /**
+   * 判断对象是否包含某个属性
+   *
+   * @param bean      对象
+   * @param fieldName 属性名
+   * @return true 表示存在该属性，false 表示不存在
+   */
+  public static boolean hasProperty(@NonNull Object bean, @NonNull String fieldName) {
+    if (StrUtil.isBlank(fieldName)) {
+      return false;
+    }
+    PropertyDescriptor propertyDescriptor = org.springframework.beans.BeanUtils.getPropertyDescriptor(bean.getClass(), fieldName);
+    return propertyDescriptor != null;
+  }
+
+  /**
    * 根据属性名设置属性值
    *
    * @param bean      对象
