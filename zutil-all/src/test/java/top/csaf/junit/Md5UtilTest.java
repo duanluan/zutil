@@ -32,15 +32,15 @@ public class Md5UtilTest {
     assertEquals("bc4b2a76b9719d91", Md5Util.toLowerCaseShort(input));
 
     // byte[] 类型
-    byte[] bytes = FileUtil.readFileToByteArray(new File("C:\\Windows\\notepad.exe"));
+    byte[] bytes = FileUtil.readFileToByteArray(new File(FileUtil.getProjectPath() + "/src/test/java/top/csaf/assets/crypto/md5test"));
     // 大写
-    assertEquals("FF3E29FDFAFA0E9030E2FCD71489D41D", Md5Util.toUpperCase(bytes));
+    assertEquals("3E99DD0E6F79D544B11AAFF738C5C1B5", Md5Util.toUpperCase(bytes));
     // 大写短写（中间 16 位）
-    assertEquals("FAFA0E9030E2FCD7", Md5Util.toUpperCaseShort(bytes));
+    assertEquals("6F79D544B11AAFF7", Md5Util.toUpperCaseShort(bytes));
     // 小写
-    assertEquals("ff3e29fdfafa0e9030e2fcd71489d41d", Md5Util.toLowerCase(bytes));
+    assertEquals("3e99dd0e6f79d544b11aaff738c5c1b5", Md5Util.toLowerCase(bytes));
     // 小写短写（中间 16 位）
-    assertEquals("fafa0e9030e2fcd7", Md5Util.toLowerCaseShort(bytes));
+    assertEquals("6f79d544b11aaff7", Md5Util.toLowerCaseShort(bytes));
 
     // null
     assertEquals("", Md5Util.toUpperCase((String) null));
