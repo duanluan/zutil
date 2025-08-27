@@ -1,6 +1,7 @@
 package top.csaf.crypto;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import top.csaf.charset.StandardCharsets;
 import top.csaf.lang.StrUtil;
 
 import java.security.MessageDigest;
@@ -12,6 +13,10 @@ import java.security.Security;
  * MD5 工具类
  */
 public class Md5Util {
+
+  static {
+    Security.addProvider(new BouncyCastleProvider());
+  }
 
   /**
    * MD5 加密
@@ -28,14 +33,13 @@ public class Md5Util {
       throw new IllegalArgumentException("in must be String or byte[]");
     }
 
-    Security.addProvider(new BouncyCastleProvider());
     MessageDigest md;
     try {
       md = MessageDigest.getInstance("MD5", "BC");
     } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
       throw new RuntimeException(e);
     }
-    byte[] messageDigest = md.digest(in instanceof String ? ((String) in).getBytes() : (byte[]) in);
+    byte[] messageDigest = md.digest(in instanceof String ? ((String) in).getBytes(StandardCharsets.UTF_8) : (byte[]) in);
     StringBuilder hexString = new StringBuilder();
 
     for (byte b : messageDigest) {
