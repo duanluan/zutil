@@ -2,6 +2,7 @@ package top.csaf.io;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SystemUtils;
 import top.csaf.constant.CommonPattern;
 import top.csaf.lang.StrUtil;
 import top.csaf.regex.RegExUtil;
@@ -9,6 +10,7 @@ import top.csaf.regex.RegExUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -69,6 +71,68 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
    */
   public static InputStream getResourceAsStream(@NonNull final String path) {
     return Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+  }
+
+  /**
+   * 获取类的根路径（不含包），打包前使用
+   *
+   * @param clazz 类
+   * @return 类的根路径（不含包），打包前使用
+   */
+  public static String getResourceRootPath(@NonNull final Class<?> clazz) {
+    URL resUrl = clazz.getClassLoader().getResource("");
+    if (resUrl == null) {
+      return null;
+    }
+    if (SystemUtils.IS_OS_WINDOWS) {
+      String result = resUrl.getPath();
+      if (result.startsWith("/")) {
+        result = result.substring(1);
+      }
+      return result;
+    }
+    return resUrl.getPath();
+  }
+
+  /**
+   * 获取类的根路径（不含包），打包前使用
+   *
+   * @return 类的根路径（不含包），打包前使用
+   */
+  public static String getResourceRootPath() {
+    URL resUrl = Thread.currentThread().getContextClassLoader().getResource("");
+    if (resUrl == null) {
+      return null;
+    }
+    if (SystemUtils.IS_OS_WINDOWS) {
+      String result = resUrl.getPath();
+      if (result.startsWith("/")) {
+        result = result.substring(1);
+      }
+      return result;
+    }
+    return resUrl.getPath();
+  }
+
+  /**
+   * 获取类路径，打包前使用
+   *
+   * @param clazz 类
+   * @return 类路径，打包前使用
+   */
+  public static String getClassPath(@NonNull final Class<?> clazz) {
+    URL resUrl = clazz.getResource("");
+    if (resUrl == null) {
+      return null;
+    }
+    if (SystemUtils.IS_OS_WINDOWS) {
+      String result = resUrl.getPath();
+      if (result.startsWith("/")) {
+        result = result.substring(1);
+      }
+      return result;
+    }
+    return resUrl.getPath();
   }
 
   /**
