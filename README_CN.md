@@ -2,12 +2,15 @@
 
 # ZUtil
 
-[![](https://img.shields.io/hexpm/l/plug?style=for-the-badge&logo=apache)](./LICENSE) 
-[![](https://img.shields.io/maven-central/v/top.csaf/zutil-all?style=for-the-badge&logo=apachemaven)](https://central.sonatype.com/artifact/top.csaf/zutil-all) 
-[![](https://img.shields.io/badge/JDK-8%2B-orange?style=for-the-badge&logo=openjdk)]() 
-[![](https://img.shields.io/github/stars/duanluan/zutil?style=for-the-badge&logo=github)](https://github.com/duanluan/zutil) 
-[![GitHub commits](https://img.shields.io/github/commit-activity/m/duanluan/zutil?style=for-the-badge&label=Commits&logo=github)](https://github.com/duanluan/zutil/commits) 
-[![](https://img.shields.io/badge/QQ%20group-273743748-e76970.svg?style=for-the-badge&logo=tencentqq)](https://jq.qq.com/?_wv=1027&k=pYzF0R18) 
+[![](https://img.shields.io/hexpm/l/plug?style=for-the-badge&logo=apache)](./LICENSE)
+[![](https://img.shields.io/maven-central/v/top.csaf/zutil-all?style=for-the-badge&logo=apachemaven)](https://central.sonatype.com/artifact/top.csaf/zutil-all)
+[![](https://img.shields.io/badge/JDK-8%2B-orange?style=for-the-badge&logo=openjdk)]()
+[![](https://img.shields.io/github/stars/duanluan/zutil?style=for-the-badge&logo=github)](https://github.com/duanluan/zutil)
+[![GitHub commits](https://img.shields.io/github/commit-activity/m/duanluan/zutil?style=for-the-badge&label=Commits&logo=github)](https://github.com/duanluan/zutil/commits)
+[![](https://img.shields.io/badge/Discord-N39y9EvYC9-e76970?style=for-the-badge&logo=discord&logoColor=f5f5f5)](https://discord.gg/N39y9EvYC9)
+[![](https://img.shields.io/badge/QQ%20group-273743748-e76970.svg?style=for-the-badge&logo=tencentqq)](https://jq.qq.com/?_wv=1027&k=pYzF0R18)
+
+[English](./README.md) | [简体中文](./README_CN.md)
 
 追求更快更全的 Java 工具类。
 
@@ -17,9 +20,9 @@
 
 ## 特性
 
-* 更快：使用 [JMH](https://openjdk.org/projects/code-tools/jmh/) 进行[性能测试](https://github.com/duanluan/zutil/tree/main/zutil-all/src/test/java/top/csaf/jmh)。
-* 更全：[时间工具类](https://github.com/duanluan/zutil/blob/main/zutil-date/src/main/java/top/csaf/date/DateUtil.java) 170+ 个方法，3300+ 行；[正则工具类](https://github.com/duanluan/zutil/blob/main/zutil-regex/src/main/java/top/csaf/regex/RegExUtil.java) 140+ 个方法，2000+ 行。
-* 更安全：使用 [JUnit](https://junit.org/junit5) 进行套件测试，[JaCoCo](https://www.jacoco.org/jacoco/index.html) 进行[代码覆盖率测试](https://github.com/duanluan/zutil/tree/main/zutil-all/src/test/java/top/csaf/junit)，保证每行代码都符合预期，更少出 BUG。
+- 更快：使用 [JMH](https://openjdk.org/projects/code-tools/jmh/) 进行[性能测试](https://github.com/duanluan/zutil/tree/main/zutil-all/src/test/java/top/csaf/jmh)。
+- 更全：[时间工具类](https://github.com/duanluan/zutil/blob/main/zutil-date/src/main/java/top/csaf/date/DateUtil.java) 170+ 个方法，3300+ 行；[正则工具类](https://github.com/duanluan/zutil/blob/main/zutil-regex/src/main/java/top/csaf/regex/RegExUtil.java) 140+ 个方法，2000+ 行。
+- 更安全：使用 [JUnit](https://junit.org/junit5) 进行套件测试，[JaCoCo](https://www.jacoco.org/jacoco/index.html) 进行[代码覆盖率测试](https://github.com/duanluan/zutil/tree/main/zutil-all/src/test/java/top/csaf/junit)，保证每行代码都符合预期，更少出 BUG。
 
 ## Stargazers over time
 
@@ -148,43 +151,44 @@ dependencies {
 ```
 
 Mode 即为`org.openjdk.jmh.annotations.Mode`，分为：
-* thrpt：**Throughput（吞吐量）**, ops/time，分数越大越好
-* avgt：**Average time（平均时间）**, time/op，分数越小越好
-* sample：**Sampling time（采样时间）**，分数越小越好
-* ss：**Single shot invocation time（单次调用时间）**：分数越小越好
+- thrpt：**Throughput（吞吐量）**, ops/time，分数越大越好
+- avgt：**Average time（平均时间）**, time/op，分数越小越好
+- sample：**Sampling time（采样时间）**，分数越小越好
+- ss：**Single shot invocation time（单次调用时间）**：分数越小越好
 
 ### 参与开发
 
 1. **[Fork](https://github.com/duanluan/zutil/fork)** 并 **Clone** 项目到本地。
 2. 开发内容：
-   * **新增类或方法**需提前[加群](https://jq.qq.com/?_wv=1027&k=pYzF0R18)沟通。
-   * **修复 BUG**（fix）、**优化性能**（perf）或**新增/更正测试**（test）。
+   - **新增类或方法**需提前[加群](https://jq.qq.com/?_wv=1027&k=pYzF0R18)沟通。
+   - **修复 BUG**（fix）、**优化性能**（perf）或**新增/更正测试**（test）。
 3. 测试步骤：
-   * 使用`org.junit.jupiter.api.Assertions`进行**代码覆盖率测试**：
-    ```java
-    ……
-    import top.csaf.id.NanoIdUtil;
-    import static org.junit.jupiter.api.Assertions.*;
-    
-    @Slf4j
-    @DisplayName("NanoId 工具类测试")
-    class NanoIdUtilTest {
-    
-      @DisplayName("生成 NanoID")
-      @Test
-      void randomNanoId() {
-        /** {@link NanoIdUtil#randomNanoId(int, char[], java.util.Random) } */
-        assertThrows(NullPointerException.class, () -> NanoIdUtils.randomNanoId(0, (char[]) null, NanoIdUtils.DEFAULT_ID_GENERATOR));
-        assertThrows(NullPointerException.class, () -> NanoIdUtils.randomNanoId(0, new char[0], null));
-        assertThrows(IllegalArgumentException.class, () -> NanoIdUtils.randomNanoId(0, new char[0], NanoIdUtils.DEFAULT_ID_GENERATOR));
-        assertThrows(IllegalArgumentException.class, () -> NanoIdUtils.randomNanoId(1, new char[0], NanoIdUtils.DEFAULT_ID_GENERATOR));
-        assertThrows(IllegalArgumentException.class, () -> NanoIdUtils.randomNanoId(1, new char[256], NanoIdUtils.DEFAULT_ID_GENERATOR));
-        assertDoesNotThrow(() -> NanoIdUtils.randomNanoId(NanoIdUtils.DEFAULT_SIZE, NanoIdUtils.DEFAULT_ALPHABET, NanoIdUtils.DEFAULT_ID_GENERATOR));
-      }
-    }
-    ```
-   * `mvn test -Dtest=要测试的类名`进行测试，测试后会在`target`下生成`jacoco.exec`。
-   * `mvn jacoco:report`生成代码覆盖率测试报告，在`target/site`目录下。
-   * 查看更新的类或方法，覆盖率在 **90%** 以上时提交。
-   * `lombok.NonNull`的参数校验可以忽略。
+   - 使用`org.junit.jupiter.api.Assertions`进行**代码覆盖率测试**：
+
+        ```java
+        ……
+        import top.csaf.id.NanoIdUtil;
+        import static org.junit.jupiter.api.Assertions.*;
+        
+        @Slf4j
+        @DisplayName("NanoId 工具类测试")
+        class NanoIdUtilTest {
+        
+          @DisplayName("生成 NanoID")
+          @Test
+          void randomNanoId() {
+            /** {@link NanoIdUtil#randomNanoId(int, char[], java.util.Random) } */
+            assertThrows(NullPointerException.class, () -> NanoIdUtils.randomNanoId(0, (char[]) null, NanoIdUtils.DEFAULT_ID_GENERATOR));
+            assertThrows(NullPointerException.class, () -> NanoIdUtils.randomNanoId(0, new char[0], null));
+            assertThrows(IllegalArgumentException.class, () -> NanoIdUtils.randomNanoId(0, new char[0], NanoIdUtils.DEFAULT_ID_GENERATOR));
+            assertThrows(IllegalArgumentException.class, () -> NanoIdUtils.randomNanoId(1, new char[0], NanoIdUtils.DEFAULT_ID_GENERATOR));
+            assertThrows(IllegalArgumentException.class, () -> NanoIdUtils.randomNanoId(1, new char[256], NanoIdUtils.DEFAULT_ID_GENERATOR));
+            assertDoesNotThrow(() -> NanoIdUtils.randomNanoId(NanoIdUtils.DEFAULT_SIZE, NanoIdUtils.DEFAULT_ALPHABET, NanoIdUtils.DEFAULT_ID_GENERATOR));
+          }
+        }
+        ```
+   - `mvn test -Dtest=要测试的类名`进行测试，测试后会在`target`下生成`jacoco.exec`。
+   - `mvn jacoco:report`生成代码覆盖率测试报告，在`target/site`目录下。
+   - 查看更新的类或方法，覆盖率在 **90%** 以上时提交。
+   - `lombok.NonNull`的参数校验可以忽略。
 4. 提交时遵循 **[Angular 提交消息规范](https://github.com/angular/angular/blob/22b96b9/CONTRIBUTING.md#-commit-message-guidelines)**，提交后新建 **pull request** 即可。
