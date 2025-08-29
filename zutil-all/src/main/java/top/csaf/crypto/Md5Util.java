@@ -22,8 +22,8 @@ public class Md5Util {
    * MD5 加密
    *
    * @param in          输入，可以是 String 或 byte[]
-   * @param isUpperCase 是否转大写
-   * @return 加密后的字符串
+   * @param isUpperCase 是否转大写，默认小写
+   * @return 加密后的字符串（32 位十六进制格式）
    */
   private static String to(Object in, boolean isUpperCase) {
     if (StrUtil.isBlank(in)) {
@@ -39,16 +39,14 @@ public class Md5Util {
     } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
       throw new RuntimeException(e);
     }
+    // 输入数据（如果 in 是 String，则先转成 UTF-8 编码的字节数组），进行 MD5 运算，返回固定长度的 16 字节数组
     byte[] messageDigest = md.digest(in instanceof String ? ((String) in).getBytes(StandardCharsets.UTF_8) : (byte[]) in);
-    StringBuilder hexString = new StringBuilder();
-
+    // StringBuilder 预分配长度 32，因为 MD5 的结果固定是 16 字节，每个字节转成 2 位十六进制字符，总长度 32
+    StringBuilder hexString = new StringBuilder(32);
+    // 遍历每个字节（范围 -128 ~ 127）
     for (byte b : messageDigest) {
-      String hex = Integer.toHexString(0xff & b);
-      // 保证生成的十六进制字符串长度为32位（每个字节转换后的十六进制是两位才行），需要在长度为1的十六进制字符串前补充0
-      if (in instanceof byte[] && hex.length() == 1) {
-        hexString.append('0');
-      }
-      hexString.append(hex);
+      // 把每个字节转成无符号的十六进制字符串（范围 00 ~ ff），%02x 表示：如果结果只有 1 位（例如 "a"），就在前面补 0（变成 "0a"）
+      hexString.append(String.format("%02x", b));
     }
     // 是否转大写
     if (isUpperCase) {
