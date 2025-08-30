@@ -8,7 +8,7 @@
 [![](https://img.shields.io/github/stars/duanluan/zutil?style=for-the-badge&logo=github)](https://github.com/duanluan/zutil)
 [![GitHub commits](https://img.shields.io/github/commit-activity/m/duanluan/zutil?style=for-the-badge&label=Commits&logo=github)](https://github.com/duanluan/zutil/commits)
 [![](https://img.shields.io/badge/Discord-N39y9EvYC9-e76970?style=for-the-badge&logo=discord&logoColor=f5f5f5)](https://discord.gg/N39y9EvYC9)
-[![](https://img.shields.io/badge/QQ%20group-273743748-e76970.svg?style=for-the-badge&logo=tencentqq)](https://jq.qq.com/?_wv=1027&k=pYzF0R18)
+[![](https://img.shields.io/badge/QQ%20group-273743748-e76970?style=for-the-badge&logo=tencentqq)](https://jq.qq.com/?_wv=1027&k=pYzF0R18)
 
 [English](./README.md) | [简体中文](./README_CN.md)
 
