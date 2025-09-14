@@ -380,7 +380,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.10.1</version>
+          <version>3.14.0</version>
           <!-- compiler:compile https://maven.apache.org/plugins/maven-compiler-plugin/compile-mojo.html -->
           <configuration>
             <!-- Setting the -source and -target of the Java Compiler https://maven.apache.org/plugins/maven-compiler-plugin/examples/set-compiler-source-and-target.html -->
@@ -396,7 +396,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.22.2</version>
+          <version>3.5.4</version>
           <!-- surefire:test https://maven.apache.org/surefire/maven-surefire-plugin/test-mojo.html -->
           <configuration>
             <!-- 忽略测试失败 https://maven.apache.org/surefire/maven-surefire-plugin/test-mojo.html#testFailureIgnore -->
@@ -421,7 +421,7 @@
         <plugin>
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
-          <version>0.8.11</version>
+          <version>0.8.13</version>
           <configuration>
             <!-- 指定包含 JaCoCo 代理的属性名 https://www.eclemma.org/jacoco/trunk/doc/prepare-agent-mojo.html#propertyName -->
             <!-- 使用 maven-surefire-plugin 时会覆盖 VM 参数，所以需要取名并配置到 maven-surefire-plugin 的 argLine 中 -->
@@ -443,7 +443,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>3.2.1</version>
+          <version>3.3.1</version>
           <executions>
             <execution>
               <id>attach-sources</id>
@@ -459,7 +459,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.6.0</version>
+          <version>3.11.3</version>
           <configuration>
             <!-- 关闭 doclint，避免因为 Javadoc 格式问题导致构建失败 https://maven.apache.org/plugins/maven-javadoc-plugin/javadoc-mojo.html#doclint -->
             <doclint>none</doclint>
@@ -511,7 +511,7 @@
         <plugin>
           <groupId>org.sonatype.central</groupId>
           <artifactId>central-publishing-maven-plugin</artifactId>
-          <version>0.4.0</version>
+          <version>0.8.0</version>
           <extensions>true</extensions>
           <configuration>
             <publishingServerId>central</publishingServerId>
