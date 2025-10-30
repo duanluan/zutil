@@ -231,7 +231,7 @@ public class IdCardUtil {
     } else if (clazz == String.class) {
       return (T) (year + "-" + month + "-" + day);
     } else if (clazz == Long.class || clazz == long.class) {
-      return (T) new Long(LocalDateTime.of(Integer.parseInt(year), Integer.parseInt(month), Integer.parseInt(day), 0, 0, 0).toEpochSecond(ZoneId.systemDefault().getRules().getOffset(Instant.now())) * 1000L);
+      return (T) Long.valueOf(LocalDateTime.of(Integer.parseInt(year), Integer.parseInt(month), Integer.parseInt(day), 0, 0, 0).toEpochSecond(ZoneId.systemDefault().getRules().getOffset(Instant.now())) * 1000L);
     }
     return null;
   }
