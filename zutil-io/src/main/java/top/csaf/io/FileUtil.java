@@ -59,7 +59,11 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
    * @param path  文件路径
    * @return 文件输入流
    */
-  public static InputStream getResourceAsStream(@NonNull Class<?> clazz, @NonNull final String path) {
+  public static InputStream getResourceAsStream(@NonNull Class<?> clazz, @NonNull String path) {
+    // ClassLoader 加载资源时路径不应以 / 开头
+    if (path.startsWith("/")) {
+      path = path.substring(1);
+    }
     return clazz.getClassLoader().getResourceAsStream(path);
   }
 
@@ -69,7 +73,11 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
    * @param path 文件路径
    * @return 文件输入流
    */
-  public static InputStream getResourceAsStream(@NonNull final String path) {
+  public static InputStream getResourceAsStream(@NonNull String path) {
+    // ClassLoader 加载资源时路径不应以 / 开头
+    if (path.startsWith("/")) {
+      path = path.substring(1);
+    }
     return Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
   }
 
@@ -142,7 +150,11 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
    * @return 文件扩展名
    */
   public static String getFileExtension(@NonNull final String filePath) {
-    return new StringBuffer(RegExUtil.match(new StringBuffer(filePath).reverse().toString(), PATTERN_REVERSE_FILE_EXTENSION.pattern(), 0, 1)).reverse().toString();
+    String match = RegExUtil.match(new StringBuffer(filePath).reverse().toString(), PATTERN_REVERSE_FILE_EXTENSION.pattern(), 0, 1);
+    if (match == null) {
+      return "";
+    }
+    return new StringBuffer(match).reverse().toString();
   }
 
   /**
