@@ -187,7 +187,7 @@ Mode 即为`org.openjdk.jmh.annotations.Mode`，分为：
           }
         }
         ```
-   - `mvn test -Dtest=要测试的类名`进行测试，测试后会在`target`下生成`jacoco.exec`。
+   - 进入测试类所在**模块目录**，运行`mvn test -Dtest=测试类类名`进行测试（例如：`mvn test -Dtest=NanoIdUtilTest`），测试后会在`target`下生成`jacoco.exec`。
    - `mvn jacoco:report`生成代码覆盖率测试报告，在`target/site`目录下。
    - 查看更新的类或方法，覆盖率在 **90%** 以上时提交。
    - `lombok.NonNull`的参数校验可以忽略。

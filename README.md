@@ -189,7 +189,7 @@ Mode (`org.openjdk.jmh.annotations.Mode`):
         }
       }
       ```
-    - Run `mvn test -Dtest=ClassNameToTest` for testing, after which `jacoco.exec` will be generated under the `target` directory.
+    - Navigate to the **module directory** containing the test class, then run `mvn test -Dtest=TestClassName`(e.g., `mvn test -Dtest=NanoIdUtilTest`). After testing, `jacoco.exec` will be generated under the `target` directory.
     - Run `mvn jacoco:report` to generate the code coverage report in the `target/site` directory.
     - Ensure coverage of updated classes or methods is above **90%** before submitting.
     - Parameter validation using `lombok.NonNull` can be ignored.
