@@ -25,19 +25,42 @@ public class UnicodeUtil {
    * @return Unicode 编码字符串
    */
   public static String toUnicode(@NonNull String str) {
-    // 判空，如果由调用方保证非空，此处可依赖 @NonNull，但为了逻辑完整保留空串处理
     if (str.isEmpty()) {
       return "";
     }
+    return encode(str, true);
+  }
 
-    // 预估容量，通常 unicode 是原长度的 6 倍 (反斜杠u + 4位 hex)
-    StringBuilder sb = new StringBuilder(str.length() * 6);
-    // 遍历字符串中的每一个字符
+  /**
+   * 字符串转 16 进制（Unicode 无前缀）
+   * <p>
+   * 例如："你好" -> "4f60597d"
+   *
+   * @param str 待转换的字符串
+   * @return 16 进制字符串
+   */
+  public static String toHex(@NonNull String str) {
+    if (str.isEmpty()) {
+      return "";
+    }
+    return encode(str, false);
+  }
+
+  /**
+   * 内部编码逻辑
+   *
+   * @param str        字符串
+   * @param withPrefix 是否带 反斜杠u 前缀
+   * @return 编码后的字符串
+   */
+  private static String encode(String str, boolean withPrefix) {
+    // 预估容量：带前缀 * 6，不带前缀 * 4
+    StringBuilder sb = new StringBuilder(str.length() * (withPrefix ? 6 : 4));
     for (int i = 0; i < str.length(); i++) {
       char c = str.charAt(i);
-      // 添加前缀
-      sb.append("\\u");
-      // 转为 16 进制字符串
+      if (withPrefix) {
+        sb.append("\\u");
+      }
       String hex = Integer.toHexString(c);
       // 不足 4 位补 0
       if (hex.length() < 4) {
@@ -85,6 +108,37 @@ public class UnicodeUtil {
       } else {
         // 非 Unicode 序列，直接追加
         sb.append(c);
+      }
+    }
+    return sb.toString();
+  }
+
+  /**
+   * 16 进制（Unicode 无前缀）转字符串
+   * <p>
+   * 例如："4f60597d" -> "你好"<br>
+   * 注意：输入必须是纯 16 进制字符串，且长度必须是 4 的倍数
+   *
+   * @param hex 16 进制字符串
+   * @return 原始字符串
+   * @throws IllegalArgumentException 如果长度不是 4 的倍数或包含非法字符
+   */
+  public static String fromHex(@NonNull String hex) {
+    if (hex.isEmpty()) {
+      return "";
+    }
+    if (hex.length() % 4 != 0) {
+      throw new IllegalArgumentException("Length of hex string must be a multiple of 4");
+    }
+
+    StringBuilder sb = new StringBuilder(hex.length() / 4);
+    for (int i = 0; i < hex.length(); i += 4) {
+      String sub = hex.substring(i, i + 4);
+      try {
+        char parsedChar = (char) Integer.parseInt(sub, 16);
+        sb.append(parsedChar);
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Invalid hex string: " + sub);
       }
     }
     return sb.toString();

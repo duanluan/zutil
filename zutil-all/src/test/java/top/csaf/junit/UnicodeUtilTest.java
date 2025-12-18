@@ -41,6 +41,19 @@ class UnicodeUtilTest {
     assertThrows(NullPointerException.class, () -> UnicodeUtil.toUnicode(null));
   }
 
+  @DisplayName("字符串转 16 进制 (toHex)")
+  @Test
+  void toHex() {
+    // 1. 正常中文
+    assertEquals("4f60597d", UnicodeUtil.toHex("你好"));
+    // 2. 英文（补零）
+    assertEquals("0061", UnicodeUtil.toHex("a"));
+    // 3. 空串
+    assertEquals("", UnicodeUtil.toHex(""));
+    // 4. Null
+    assertThrows(NullPointerException.class, () -> UnicodeUtil.toHex(null));
+  }
+
   @DisplayName("Unicode 转字符串")
   @Test
   void testToString() {
@@ -62,5 +75,22 @@ class UnicodeUtilTest {
     assertEquals("\\a", UnicodeUtil.toString("\\a"));
     // 8. Null 检查
     assertThrows(NullPointerException.class, () -> UnicodeUtil.toString(null));
+  }
+
+  @DisplayName("16 进制转字符串 (fromHex)")
+  @Test
+  void fromHex() {
+    // 1. 正常转换
+    assertEquals("你好", UnicodeUtil.fromHex("4f60597d"));
+    // 2. 英文转换
+    assertEquals("a", UnicodeUtil.fromHex("0061"));
+    // 3. 空串
+    assertEquals("", UnicodeUtil.fromHex(""));
+    // 4. 长度不是 4 的倍数
+    assertThrows(IllegalArgumentException.class, () -> UnicodeUtil.fromHex("4f605"));
+    // 5. 包含非法字符 (ZZZZ)
+    assertThrows(IllegalArgumentException.class, () -> UnicodeUtil.fromHex("ZZZZ"));
+    // 6. Null
+    assertThrows(NullPointerException.class, () -> UnicodeUtil.fromHex(null));
   }
 }
