@@ -1,6 +1,17 @@
-# 入门
+# 快速入门
 
-## 安装
+## 🔗 资源
+
+* [Maven 中央库](https://central.sonatype.com/artifact/top.csaf/zutil-all)
+* [Maven Repository](https://mvnrepository.com/artifact/top.csaf/zutil-all)
+
+---
+
+## 📦 安装
+
+请在项目的依赖管理文件中添加 **ZUtil**。
+
+> 💡 **提示**: 当前最新版本为 `2.0.0-beta1`，请根据实际情况调整。
 
 ### Maven
 
@@ -15,20 +26,29 @@
 ### Gradle
 
 ```groovy
-// groovy
+// Groovy DSL
 implementation 'top.csaf:zutil-all:2.0.0-beta1'
-// kotlin
+
+// Kotlin DSL
 implementation("top.csaf:zutil-all:2.0.0-beta1")
 ```
 
-## 安装注意
+---
 
-工具包中已使用`slf4j-api`和`slf4j-simple`，和`spring-boot-starter-web`同时使用时会**冲突**，需要手动排除。
+## ⚠️ 安装注意事项 (依赖冲突)
 
-### Maven
+ZUtil 默认引入了 `slf4j-api` 和 `slf4j-simple` 以支持简单的日志输出。
 
+如果你的项目中同时使用了 **Spring Boot Web** (它包含 `spring-boot-starter-logging` 和 `Logback`)，**会发生日志实现冲突**。
+
+请根据你的需求，选择以下**任意一种**方式解决冲突：
+
+### 1. 方式一：排除 ZUtil 的日志依赖 (推荐)
+
+如果你希望使用 Spring Boot 默认的 Logback，请排除 ZUtil 自带的 `slf4j` 依赖。
+
+#### Maven
 ```xml
-<!-- 方式一：ZUtil 排除 slf4j -->
 <dependency>
   <groupId>top.csaf</groupId>
   <artifactId>zutil-all</artifactId>
@@ -44,8 +64,29 @@ implementation("top.csaf:zutil-all:2.0.0-beta1")
     </exclusion>
   </exclusions>
 </dependency>
+```
 
-<!-- 方式二：spring-boot-starter-web 排除 Logback -->
+#### Gradle
+```groovy
+// Groovy DSL
+implementation('top.csaf:zutil-all:2.0.0-beta1') {
+  exclude group: 'org.slf4j', module: 'slf4j-api'
+  exclude group: 'org.slf4j', module: 'slf4j-simple'
+}
+
+// Kotlin DSL
+implementation("top.csaf:zutil-all:2.0.0-beta1") {
+  exclude(group = "org.slf4j", module = "slf4j-api")
+  exclude(group = "org.slf4j", module = "slf4j-simple")
+}
+```
+
+### 2. 方式二：排除 Spring Boot 的日志依赖
+
+如果你希望使用 ZUtil 提供的简单日志实现（不推荐在生产环境使用），可以排除 Spring Boot 的日志模块。
+
+#### Maven
+```xml
 <dependency>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-web</artifactId>
@@ -58,39 +99,17 @@ implementation("top.csaf:zutil-all:2.0.0-beta1")
 </dependency>
 ```
 
-### Gradle
-参考：[Excluding transitive dependencies - Gradle User Manual](https://docs.gradle.org/current/userguide/dependency_downgrade_and_exclude.html#sec:excluding-transitive-deps)
+#### Gradle
+参考：[Gradle 文档 - 排除传递依赖](https://docs.gradle.org/current/userguide/dependency_downgrade_and_exclude.html#sec:excluding-transitive-deps)
 
 ```groovy
-// groovy
-dependencies {
-  // 方式一：ZUtil 排除 slf4j
-  implementation('top.csaf:zutil-all:2.0.0-beta1') {
-    exclude group: 'org.slf4j', module: 'slf4j-api'
-    exclude group: 'org.slf4j', module: 'slf4j-simple'
-  }
-  // 方式二：spring-boot-starter-web 排除 Logback
-  implementation('org.springframework.boot:spring-boot-starter-web') {
-    exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
-  }
+// Groovy DSL
+implementation('org.springframework.boot:spring-boot-starter-web') {
+  exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
 }
 
-// kotlin
-dependencies {
-  // 方式一：ZUtil 排除 slf4j
-  implementation("top.csaf:zutil-all:2.0.0-beta1") {
-    exclude(group = "org.slf4j", module = "slf4j-api")
-    exclude(group = "org.slf4j", module = "slf4j-simple")
-  }
-  // 方式二：spring-boot-starter-web 排除 Logback
-  implementation("org.springframework.boot:spring-boot-starter-web") {
-    exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
-  }
+// Kotlin DSL
+implementation("org.springframework.boot:spring-boot-starter-web") {
+  exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
 }
-
 ```
-
-## 资源
-
-* [Maven 中央库](https://central.sonatype.com/artifact/top.csaf/zutil-all)
-* [Maven Repository](https://mvnrepository.com/artifact/top.csaf/zutil-all)

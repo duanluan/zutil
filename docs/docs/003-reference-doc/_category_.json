@@ -1,7 +1,7 @@
 {
-  "label": "参考手册",
+  "label": "功能组件",
   "link": {
     "type": "generated-index",
-    "description": "Reference Doc"
+    "description": "ZUtil 提供的所有核心工具模块"
   }
 }
