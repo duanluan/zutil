@@ -146,7 +146,28 @@ const config = {
         // 支持的额外语言：https://docusaurus.io/zh-CN/docs/next/markdown-features/code-blocks#supported-languages
         additionalLanguages: ['java', 'groovy', 'kotlin'],
       },
+      // 文档配置：https://docusaurus.io/zh-CN/docs/next/api/themes/configuration#%E6%96%87%E6%A1%A3
+      docs: {
+        sidebar: {
+          // 显示隐藏侧边栏按钮
+          hideable: true,
+          // 点击一个分类时自动折叠其他分类
+          autoCollapseCategories: true,
+        },
+      }
     }),
+  themes: [
+    [
+      "@easyops-cn/docusaurus-search-local",
+      {
+        hashed: true,
+        // 支持中英文混合搜索
+        language: ["en", "zh"],
+        highlightSearchTermsOnTargetPage: true,
+        explicitSearchResultPath: true,
+      },
+    ],
+  ],
 };
 
 module.exports = config;
