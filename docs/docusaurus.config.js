@@ -139,9 +139,12 @@ const config = {
         ],
         copyright: `Copyright © ${new Date().getFullYear()} ZUtil, Inc. Built with duanluan.`,
       },
+      // 语法高亮：https://docusaurus.io/zh-CN/docs/next/markdown-features/code-blocks#syntax-highlighting
       prism: {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
+        // 支持的额外语言：https://docusaurus.io/zh-CN/docs/next/markdown-features/code-blocks#supported-languages
+        additionalLanguages: ['java', 'groovy', 'kotlin'],
       },
     }),
 };
