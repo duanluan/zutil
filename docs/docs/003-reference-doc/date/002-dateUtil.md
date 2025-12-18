@@ -24,10 +24,10 @@
 
 | 长度 | 支持格式示例 (Pattern) | 实际输入示例 |
 | :--- | :--- | :--- |
-| **19** | `uuuu-MM-dd HH:mm:ss`<br>`uuuu/MM/dd HH:mm:ss`<br>`uuuu.MM.dd HH:mm:ss` | `"2023-10-01 12:30:00"`<br>`"2023/10/01 12:30:00"` |
-| **16** | `uuuu-MM-dd HH:mm`<br>`uuuu/MM/dd HH:mm`<br>`uuuu.MM.dd HH:mm` | `"2023-10-01 12:30"` |
-| **10** | `uuuu-MM-dd`<br>`uuuu/MM/dd`<br>`uuuu.MM.dd` | `"2023-10-01"`<br>`"2023.10.01"` |
-| **7** | `uuuu-MM`<br>`uuuu/MM`<br>`uuuu.MM` | `"2023-10"` |
+| **19** | `uuuu-MM-dd HH:mm:ss`<br/>`uuuu/MM/dd HH:mm:ss`<br/>`uuuu.MM.dd HH:mm:ss` | `"2023-10-01 12:30:00"`<br/>`"2023/10/01 12:30:00"` |
+| **16** | `uuuu-MM-dd HH:mm`<br/>`uuuu/MM/dd HH:mm`<br/>`uuuu.MM.dd HH:mm` | `"2023-10-01 12:30"` |
+| **10** | `uuuu-MM-dd`<br/>`uuuu/MM/dd`<br/>`uuuu.MM.dd` | `"2023-10-01"`<br/>`"2023.10.01"` |
+| **7** | `uuuu-MM`<br/>`uuuu/MM`<br/>`uuuu.MM` | `"2023-10"` |
 | **8** | `HH:mm:ss` | `"12:30:59"` |
 | **5** | `HH:mm` | `"12:30"` |
 
