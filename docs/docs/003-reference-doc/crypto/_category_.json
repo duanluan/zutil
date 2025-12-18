@@ -1,0 +1,7 @@
+{
+  "label": "Crypto 加解密",
+  "link": {
+    "type": "generated-index",
+    "description": "Crypto 加密/解密/摘要（AES, DES, SM4, MD5 等）"
+  }
+}
