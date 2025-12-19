@@ -1,7 +1,5 @@
 package top.csaf.text;
 
-import lombok.NonNull;
-
 /**
  * Unicode 工具类
  * <p>
@@ -10,21 +8,17 @@ import lombok.NonNull;
 public class UnicodeUtil {
 
   /**
-   * 构造方法私有化，防止实例化
-   */
-  private UnicodeUtil() {
-    throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
-  }
-
-  /**
    * 字符串转 Unicode
    * <p>
    * 例如："你好" -> "\u4f60\u597d"
    *
    * @param str 待转换的字符串
-   * @return Unicode 编码字符串
+   * @return Unicode 编码字符串，如果输入为 null 则返回 null
    */
-  public static String toUnicode(@NonNull String str) {
+  public static String toUnicode(String str) {
+    if (str == null) {
+      return null;
+    }
     if (str.isEmpty()) {
       return "";
     }
@@ -37,9 +31,12 @@ public class UnicodeUtil {
    * 例如："你好" -> "4f60597d"
    *
    * @param str 待转换的字符串
-   * @return 16 进制字符串
+   * @return 16 进制字符串，如果输入为 null 则返回 null
    */
-  public static String toHex(@NonNull String str) {
+  public static String toHex(String str) {
+    if (str == null) {
+      return null;
+    }
     if (str.isEmpty()) {
       return "";
     }
@@ -78,10 +75,13 @@ public class UnicodeUtil {
    * 支持混合内容： "Hello\u4f60\u597d" -> "Hello你好"
    *
    * @param unicode Unicode 编码字符串
-   * @return 原始字符串
+   * @return 原始字符串，如果输入为 null 则返回 null
    */
-  public static String toString(@NonNull String unicode) {
-    // 判空
+  public static String toString(String unicode) {
+    // 宽容处理 null
+    if (unicode == null) {
+      return null;
+    }
     if (unicode.isEmpty()) {
       return "";
     }
@@ -120,10 +120,13 @@ public class UnicodeUtil {
    * 注意：输入必须是纯 16 进制字符串，且长度必须是 4 的倍数
    *
    * @param hex 16 进制字符串
-   * @return 原始字符串
+   * @return 原始字符串，如果输入为 null 则返回 null
    * @throws IllegalArgumentException 如果长度不是 4 的倍数或包含非法字符
    */
-  public static String fromHex(@NonNull String hex) {
+  public static String fromHex(String hex) {
+    if (hex == null) {
+      return null;
+    }
     if (hex.isEmpty()) {
       return "";
     }
