@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkzutil_docs=self.webpackChunkzutil_docs||[]).push([[1903],{1912:s=>{s.exports=JSON.parse('{"blogBasePath":"/zutil/blog","blogTitle":"Blog","authorsListPath":"/zutil/blog/authors"}')}}]);

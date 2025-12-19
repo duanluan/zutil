@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkzutil_docs=globalThis.webpackChunkzutil_docs||[]).push([[670],{6198(a){a.exports=JSON.parse('{"authors":[{"name":"ZhongJianhao","title":"Maintainer of ZUtil","url":"https://github.com/duanluan","imageURL":"https://github.com/duanluan.png","key":"duanluan","page":null,"count":2}]}')}}]);
