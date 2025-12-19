@@ -1,223 +1,171 @@
 package top.csaf.id;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Twitter 雪花算法
+ * Twitter SnowFlake 雪花算法
  * <p>
- * 二进制：0 - 41 位时间戳 - 5 位数据中心 ID - 5 位机器 ID - 12 位序列号
- * <p>
- * https://github.com/beyondfengyu/SnowFlake
+ * 结构：0（1位） - 时间戳（41位） - 数据中心（5位） - 机器 ID（5位） - 序列号（12位）
  */
-@Deprecated
 @Slf4j
 public class SnowFlake {
 
   /**
-   * 开始时间戳
+   * 默认开始时间截：2025-01-01 00:00:00
    */
-  private final static long START_TIME_MILLIS = 1640966400000L;
+  private final static long DEFAULT_START_TIME = 1735689600000L;
 
   /**
-   * 默认数据中心 ID 或机器 ID 二进制位数
+   * 数据中心占用位数
    */
-  private static final long DEFAULT_DATA_CENTER_OR_MACHINE_BIT = 5L;
+  private final static long DATACENTER_BIT = 5;
   /**
-   * 最大数据中心 ID 或机器 ID 二进制位数
+   * 机器 ID 占用位数
    */
-  private static final long MAX_DATA_CENTER_AND_MACHINE_BIT = 10L;
+  private final static long MACHINE_BIT = 5;
   /**
-   * 序列号二进制位数
+   * 序列号占用位数
    */
-  private static final long SEQUENCE_BIT = 12L;
+  private final static long SEQUENCE_BIT = 12;
+
+  /**
+   * 数据中心最大值
+   */
+  private final static long MAX_DATACENTER_NUM = ~(-1L << DATACENTER_BIT);
+  /**
+   * 机器 ID 最大值
+   */
+  private final static long MAX_MACHINE_NUM = ~(-1L << MACHINE_BIT);
   /**
    * 序列号最大值
    */
-  private static final long SEQUENCE_MAX_NUMBER = getMaxNumberByBit(SEQUENCE_BIT);
+  private final static long MAX_SEQUENCE = ~(-1L << SEQUENCE_BIT);
 
   /**
-   * 机器 ID 左移 = 序列号二进制位数
+   * 数据中心 ID 左移位数
    */
-  private static long MACHINE_LEFT = SEQUENCE_BIT;
+  private final static long DATACENTER_LEFT = SEQUENCE_BIT + MACHINE_BIT;
   /**
-   * 数据中心 ID 左移 = 机器 ID 左移 + 机器 ID 二进制位数
+   * 机器 ID 左移位数
    */
-  private static final long DATA_CENTER_LEFT = MACHINE_LEFT + DEFAULT_DATA_CENTER_OR_MACHINE_BIT;
+  private final static long MACHINE_LEFT = SEQUENCE_BIT;
   /**
-   * 时间戳左移 = 数据中心 ID 左移 + 数据中心 ID 二进制位数
+   * 时间戳左移位数
    */
-  private static final long TIME_MILLIS_LEFT = DATA_CENTER_LEFT + DEFAULT_DATA_CENTER_OR_MACHINE_BIT;
-
-  /**
-   * 数据中心 ID 二进制位数
-   */
-  private long dataCenterBit = DEFAULT_DATA_CENTER_OR_MACHINE_BIT;
-  /**
-   * 机器 ID 二进制位数
-   */
-  private long machineBit = DEFAULT_DATA_CENTER_OR_MACHINE_BIT;
-  /**
-   * 数据中心 ID
-   */
-  @Setter
-  private long dataCenterId;
-  /**
-   * 机器 ID
-   */
-  @Setter
-  private long machineId;
+  private final static long TIMESTAMP_LEFT = DATACENTER_LEFT + DATACENTER_BIT;
 
   /**
-   * 根据位数计算十进制最大值
-   * <p>
-   * ~(-1 << 5 = -1 * (2 ^ 5) = -32) = 31，即 11111 的十进制为 31
-   *
-   * @param bit 位数
-   * @return 十进制最大值
+   * 数据中心 ID（0~31）
    */
-  private static long getMaxNumberByBit(long bit) {
-    return ~(-1L << bit);
-  }
-
-  public SnowFlake(SnowFlakeBuilder snowFlakeBuilder) {
-    this.dataCenterBit = snowFlakeBuilder.dataCenterBit;
-    this.machineBit = snowFlakeBuilder.machineBit;
-  }
-
+  private final long datacenterId;
   /**
-   * 雪花算法类 Builder
-   * <p>
-   * 默认数据中心 ID 二进制位数和机器 ID 二进制位数为 5
+   * 机器 ID（0~31）
    */
-  public static class SnowFlakeBuilder {
-    private Long dataCenterBit;
-    private Long machineBit;
-    private long dataCenterId;
-    private long machineId;
-
-    public SnowFlakeBuilder() {
-      this.dataCenterBit = DEFAULT_DATA_CENTER_OR_MACHINE_BIT;
-      this.machineBit = DEFAULT_DATA_CENTER_OR_MACHINE_BIT;
-    }
-
-    public SnowFlakeBuilder(long dataCenterBit, long machineBit) {
-      this.dataCenterBit = dataCenterBit;
-      this.machineBit = machineBit;
-    }
-
-    /**
-     * 设置数据中心 ID 二进制位数，和机器 ID 二进制位数同时只需设置一个即可
-     *
-     * @param dataCenterBit 数据中心 ID 二进制位数
-     * @return 雪花算法类 Builder
-     */
-    public SnowFlakeBuilder dataCenterBit(long dataCenterBit) {
-      if (dataCenterBit > MAX_DATA_CENTER_AND_MACHINE_BIT || dataCenterBit < 0) {
-        throw new IllegalArgumentException("dataCenterBit cannot be greater than " + MAX_DATA_CENTER_AND_MACHINE_BIT + " or less than 0");
-      }
-      this.dataCenterBit = dataCenterBit;
-      this.machineBit = MAX_DATA_CENTER_AND_MACHINE_BIT - dataCenterBit;
-      return this;
-    }
-
-    /**
-     * 设置机器 ID 二进制位数，和数据中心 ID 二进制位数同时只需设置一个即可
-     *
-     * @param machineBit 机器 ID 二进制位数
-     * @return 雪花算法类 Builder
-     */
-    public SnowFlakeBuilder machineBit(long machineBit) {
-      if (machineBit > MAX_DATA_CENTER_AND_MACHINE_BIT || machineBit < 0) {
-        throw new IllegalArgumentException("machineBit cannot be greater than " + MAX_DATA_CENTER_AND_MACHINE_BIT + " or less than 0");
-      }
-      this.dataCenterBit = MAX_DATA_CENTER_AND_MACHINE_BIT - machineBit;
-      this.machineBit = machineBit;
-      return this;
-    }
-
-    public SnowFlakeBuilder dataCenterId(long dataCenterId) {
-      this.dataCenterId = dataCenterId;
-      return this;
-    }
-
-    public SnowFlakeBuilder machineId(long machineId) {
-      this.machineId = machineId;
-      return this;
-    }
-
-    public SnowFlake build() {
-      return new SnowFlake(this);
-    }
-  }
-
-  public static SnowFlakeBuilder builder() {
-    return new SnowFlakeBuilder();
-  }
-
+  private final long machineId;
+  /**
+   * 开始时间戳
+   */
+  private final long startTimeMillis;
   /**
    * 序列号
    */
   private long sequence = 0L;
   /**
-   * 最后时间戳
+   * 上一次生成 ID 的时间戳
    */
-  private long lastTimeMillis = -1L;
+  private long lastTimestamp = -1L;
 
   /**
-   * @param dataCenterId 数据中心 ID
-   * @param machineId    机器 ID
+   * 构造函数 (使用默认开始时间)
+   *
+   * @param datacenterId 数据中心 ID（0~31）
+   * @param machineId    机器 ID（0~31）
    */
-  public SnowFlake(long dataCenterId, long machineId) {
-    // 数据中心 ID 判断
-    long dataCenterMaxNumber = getMaxNumberByBit(dataCenterBit);
-    if (dataCenterId > dataCenterMaxNumber || dataCenterId < 0) {
-      throw new IllegalArgumentException("dataCenterId cannot be greater than " + dataCenterMaxNumber + " or less than 0");
-    }
-    // 机器 ID 判断
-    long machineMaxNumber = getMaxNumberByBit(machineBit);
-    if (machineId > machineMaxNumber || machineId < 0) {
-      throw new IllegalArgumentException("machineId cannot be greater than " + machineMaxNumber + " or less than 0");
-    }
-    this.dataCenterId = dataCenterId;
-    this.machineId = machineId;
+  public SnowFlake(long datacenterId, long machineId) {
+    this(datacenterId, machineId, DEFAULT_START_TIME);
   }
 
-  public synchronized long next() {
-    long currentTimeMillis = System.currentTimeMillis();
-    // 机器时间被前拨，导致当前时间小于最后时间
-    if (currentTimeMillis < lastTimeMillis) {
-      throw new RuntimeException("The clock was moved forward and refused to generate ID.");
+  /**
+   * 构造函数 (自定义开始时间)
+   *
+   * @param datacenterId    数据中心 ID（0~31）
+   * @param machineId       机器 ID（0~31）
+   * @param startTimeMillis 开始时间戳 (Twepoch)，一旦上线不可更改
+   */
+  public SnowFlake(long datacenterId, long machineId, long startTimeMillis) {
+    if (datacenterId > MAX_DATACENTER_NUM || datacenterId < 0) {
+      throw new IllegalArgumentException("datacenterId can't be greater than " + MAX_DATACENTER_NUM + " or less than 0");
     }
-    // 当前毫秒 == 最后毫秒，即同一毫秒内
-    if (currentTimeMillis == lastTimeMillis) {
-      // 同一毫秒，序列号自增 & 序列号最大值
-      sequence = (sequence + 1) & SEQUENCE_MAX_NUMBER;
-      // 如果同一毫秒序列号达到最大（上面 & 了序列号最大值，所以此处最大值为 0）
-      if (sequence == 0L) {
-        long l = System.currentTimeMillis();
-        while (l <= lastTimeMillis) {
-          currentTimeMillis = System.currentTimeMillis();
+    if (machineId > MAX_MACHINE_NUM || machineId < 0) {
+      throw new IllegalArgumentException("machineId can't be greater than " + MAX_MACHINE_NUM + " or less than 0");
+    }
+    // 校验开始时间，不能晚于当前时间太多（虽然理论上可以，但容易出问题）
+    if (startTimeMillis > timeGen()) {
+      throw new IllegalArgumentException("startTimeMillis cannot be in the future");
+    }
+
+    this.datacenterId = datacenterId;
+    this.machineId = machineId;
+    this.startTimeMillis = startTimeMillis;
+  }
+
+  /**
+   * 获得下一个 ID
+   *
+   * @return SnowflakeId
+   */
+  public synchronized long next() {
+    long currTimestamp = timeGen();
+
+    if (currTimestamp < lastTimestamp) {
+      long offset = lastTimestamp - currTimestamp;
+      if (offset <= 5) {
+        try {
+          wait(offset << 1);
+          currTimestamp = timeGen();
+          if (currTimestamp < lastTimestamp) {
+            throw new RuntimeException("Clock moved backwards. Refusing to generate id");
+          }
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
         }
+      } else {
+        throw new RuntimeException(String.format("Clock moved backwards. Refusing to generate id for %d milliseconds", offset));
+      }
+    }
+
+    if (lastTimestamp == currTimestamp) {
+      sequence = (sequence + 1) & MAX_SEQUENCE;
+      if (sequence == 0) {
+        currTimestamp = tilNextMillis(lastTimestamp);
       }
     } else {
-      // 不同毫秒内序列号置 0
-      sequence = 0;
-    }
-    lastTimeMillis = currentTimeMillis;
-
-    long dataCenterLeft = DATA_CENTER_LEFT;
-    // 如果机器 ID 二进制位数非默认
-    if (this.machineBit != DEFAULT_DATA_CENTER_OR_MACHINE_BIT) {
-      dataCenterLeft = MACHINE_LEFT + this.machineBit;
-    }
-    long timeMillisLeft = TIME_MILLIS_LEFT;
-    // 如果数据中心 ID 二进制位数非默认
-    if (this.dataCenterBit != DEFAULT_DATA_CENTER_OR_MACHINE_BIT) {
-      timeMillisLeft = dataCenterLeft + this.dataCenterBit;
+      sequence = 0L;
     }
 
-    // 时间戳 | 数据中心 ID | 机器 ID | 序列号
-    return (currentTimeMillis - START_TIME_MILLIS) << dataCenterLeft | this.dataCenterId << dataCenterLeft | this.machineId << MACHINE_LEFT | sequence;
+    lastTimestamp = currTimestamp;
+
+    // 使用自定义的起始时间计算时间戳差值
+    return ((currTimestamp - this.startTimeMillis) << TIMESTAMP_LEFT) //
+      | (datacenterId << DATACENTER_LEFT) //
+      | (machineId << MACHINE_LEFT) //
+      | sequence;
+  }
+
+  private long tilNextMillis(long lastTimestamp) {
+    long timestamp = timeGen();
+    while (timestamp <= lastTimestamp) {
+      timestamp = timeGen();
+    }
+    return timestamp;
+  }
+
+  /**
+   * 获取当前时间戳，提取为 protected 方法以便测试类重写 (Mock)
+   *
+   * @return 当前时间戳
+   */
+  protected long timeGen() {
+    return System.currentTimeMillis();
   }
 }
