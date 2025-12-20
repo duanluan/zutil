@@ -1,0 +1,7 @@
+{
+  "label": "HTTP 工具 (HttpUtil)",
+  "link": {
+    "type": "generated-index",
+    "description": "轻量级 HTTP 请求工具类与常量定义模块，基于 OkHttps 封装。"
+  }
+}
