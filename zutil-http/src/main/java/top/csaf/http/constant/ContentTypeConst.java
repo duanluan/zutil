@@ -1,4 +1,4 @@
-package top.csaf.http;
+package top.csaf.http.constant;
 
 /**
  * 内容类型常量类
