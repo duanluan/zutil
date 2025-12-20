@@ -76,6 +76,7 @@
     <thumbnailator.version>0.4.20</thumbnailator.version>
     <transmittable.thread.local.version>2.14.5</transmittable.thread.local.version>
     <ulid.creator.version>5.2.3</ulid.creator.version>
+    <uuid.creator.version>6.1.1</uuid.creator.version>
 
     <junit.version>5.11.0</junit.version>
     <junit.platform.version>1.11.0</junit.platform.version>
@@ -214,6 +215,12 @@
         <groupId>com.github.f4b6a3</groupId>
         <artifactId>ulid-creator</artifactId>
         <version>${ulid.creator.version}</version>
+      </dependency>
+      <!-- A Java library to generate RFC-4122 Universally Unique Identifiers (UUID). -->
+      <dependency>
+        <groupId>com.github.f4b6a3</groupId>
+        <artifactId>uuid-creator</artifactId>
+        <version>${uuid.creator.version}</version>
       </dependency>
 
 

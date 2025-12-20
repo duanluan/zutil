@@ -115,6 +115,11 @@
       <groupId>com.github.f4b6a3</groupId>
       <artifactId>ulid-creator</artifactId>
     </dependency>
+    <!-- A Java library to generate RFC-4122 Universally Unique Identifiers (UUID). -->
+    <dependency>
+      <groupId>com.github.f4b6a3</groupId>
+      <artifactId>uuid-creator</artifactId>
+    </dependency>
 
 
     <dependency>
