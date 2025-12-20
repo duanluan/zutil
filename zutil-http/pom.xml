@@ -52,7 +52,7 @@
     <!-- HTTP、WebSocket、Stomp 请求 -->
     <dependency>
       <groupId>cn.zhxu</groupId>
-      <artifactId>okhttps-fastjson2-jsonb</artifactId>
+      <artifactId>okhttps-fastjson2</artifactId>
       <exclusions>
         <!-- 解决 okhttp 和 okio 版本不兼容导致的 java.lang.NoSuchFieldError: Companion 错误：https://ok.zhxu.cn/v4/questions.html#java-lang-nosuchfielderror-companion -->
         <exclusion>
@@ -74,6 +74,11 @@
     <dependency>
       <groupId>org.jsoup</groupId>
       <artifactId>jsoup</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.squareup.okhttp3</groupId>
+      <artifactId>mockwebserver</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

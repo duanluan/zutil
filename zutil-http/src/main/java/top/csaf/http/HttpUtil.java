@@ -22,7 +22,6 @@ import top.csaf.json.JsonUtil;
 import top.csaf.lang.StrUtil;
 import top.csaf.regex.RegExUtil;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -113,7 +112,7 @@ public class HttpUtil extends cn.zhxu.okhttps.HttpUtils {
    * @param bodyParams 请求参数
    * @return 请求参数长度
    */
-  private static int getContentLength(@NonNull final Map<String, Object> bodyParams) {
+  public static int getContentLength(@NonNull final Map<String, Object> bodyParams) {
     if (MapUtil.isEmpty(bodyParams)) {
       return 0;
     }
@@ -166,11 +165,11 @@ public class HttpUtil extends cn.zhxu.okhttps.HttpUtils {
     }
     // 请求
     HttpResult result = task.request(requestMethod);
-    if (result.getState() != HttpResult.State.RESPONSED) {
-      IOException error = result.getError();
-      log.error(error.getMessage(), error);
-      return null;
-    }
+    // if (result.getState() != HttpResult.State.RESPONSED) {
+    //   IOException error = result.getError();
+    //   log.error(error.getMessage(), error);
+    //   return null;
+    // }
     if (resultClass == null) {
       return result;
     }
