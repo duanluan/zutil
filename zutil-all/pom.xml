@@ -110,6 +110,11 @@
       <groupId>com.alibaba</groupId>
       <artifactId>transmittable-thread-local</artifactId>
     </dependency>
+    <!-- A Java library for generating ULIDs (Universally Unique Lexicographically Sortable Identifier). -->
+    <dependency>
+      <groupId>com.github.f4b6a3</groupId>
+      <artifactId>ulid-creator</artifactId>
+    </dependency>
 
 
     <dependency>

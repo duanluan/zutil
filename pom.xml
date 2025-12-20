@@ -75,6 +75,7 @@
     <batik.version>1.18</batik.version>
     <thumbnailator.version>0.4.20</thumbnailator.version>
     <transmittable.thread.local.version>2.14.5</transmittable.thread.local.version>
+    <ulid.creator.version>5.2.3</ulid.creator.version>
 
     <junit.version>5.11.0</junit.version>
     <junit.platform.version>1.11.0</junit.platform.version>
@@ -207,6 +208,12 @@
         <groupId>com.alibaba</groupId>
         <artifactId>transmittable-thread-local</artifactId>
         <version>${transmittable.thread.local.version}</version>
+      </dependency>
+      <!-- A Java library for generating ULIDs (Universally Unique Lexicographically Sortable Identifier). -->
+      <dependency>
+        <groupId>com.github.f4b6a3</groupId>
+        <artifactId>ulid-creator</artifactId>
+        <version>${ulid.creator.version}</version>
       </dependency>
 
 
