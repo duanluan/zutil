@@ -4,9 +4,7 @@ import com.google.gson.JsonArray;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.DefaultParameterNameDiscoverer;
 import top.csaf.coll.CollUtil;
-import top.csaf.lang.StrUtil;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -43,7 +41,16 @@ class CollUtilTest {
         continue;
       }
       // 参数名
-      String[] paramNames = new DefaultParameterNameDiscoverer().getParameterNames(method);
+      String[] paramNames = new org.springframework.core.DefaultParameterNameDiscoverer().getParameterNames(method);
+
+      // 如果无法获取参数名（第三方Jar包通常没有debug信息），则生成默认参数名 arg0, arg1...
+      if (paramNames == null) {
+        int count = method.getParameterCount();
+        paramNames = new String[count];
+        for (int i = 0; i < count; i++) {
+          paramNames[i] = "arg" + i;
+        }
+      }
 
       // 方法描述，比如 public static <K,V> java.util.Map$Entry<K, V> org.apache.commons.collections4.CollectionUtils.get(java.util.Map<K, V>,int)
       String genericStr = method.toGenericString();
@@ -55,7 +62,7 @@ class CollUtilTest {
       // 给参数类型加上参数名
       StringBuilder paramsStr = new StringBuilder();
       String paramsType = genericStr.substring(genericStr.indexOf("(") + 1, genericStr.indexOf(")"));
-      if (StrUtil.isNotBlank(paramsType)) {
+      if (cn.hutool.core.util.StrUtil.isNotBlank(paramsType)) {
         String[] paramTypes = paramsType.split(",");
         int j = 0;
         for (int i = 0; i < paramTypes.length; i++) {
@@ -65,6 +72,7 @@ class CollUtilTest {
             param = param + "," + paramTypes[i + 1];
             i++;
           }
+          // 此时 paramNames 已经过判空处理，不会报 NPE
           paramsStr.append(param).append(" ").append(paramNames[j]);
           if (i != paramTypes.length - 1) {
             paramsStr.append(", ");
@@ -74,7 +82,7 @@ class CollUtilTest {
       }
       // 生成代码
       System.out.println(genericStr.replace(genericStr.substring(genericStr.indexOf("("), genericStr.indexOf(")") + 1), "(" + paramsStr + ")") + " {");
-      System.out.println("  " + (method.getReturnType().getSimpleName().equals("void") ? "" : "return ") + "org.apache.commons.collections4.CollectionUtils." + method.getName() + "(" + StrUtil.join(paramNames, ", ") + ");");
+      System.out.println("  " + (method.getReturnType().getSimpleName().equals("void") ? "" : "return ") + "org.apache.commons.collections4.CollectionUtils." + method.getName() + "(" + cn.hutool.core.util.StrUtil.join(", ", (Object[]) paramNames) + ");");
       System.out.println("}\n");
     }
   }
