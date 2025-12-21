@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Map;
@@ -232,8 +233,13 @@ public class YamlUtil {
    * @return Map
    */
   public static Map<String, Object> load(@NonNull final String filePath, final boolean isEscape) {
+    Path path = Paths.get(filePath);
+    // 校验是否为普通文件，防止传入目录路径导致 "Is a directory" 异常
+    if (!Files.isRegularFile(path)) {
+      return Collections.emptyMap();
+    }
     try {
-      Map<String, Object> map = new Yaml().loadAs(Files.newInputStream(Paths.get(filePath)), Map.class);
+      Map<String, Object> map = new Yaml().loadAs(Files.newInputStream(path), Map.class);
       if (isEscape) {
         return escape(map, null, isEscape, YamlFeat.getEscapeNotFoundReplacement(), YamlFeat.getEscapeNotFoundThrowException());
       }
@@ -262,6 +268,10 @@ public class YamlUtil {
    * @return Map
    */
   public static Map<String, Object> load(@NonNull final File file, final boolean isEscape) {
+    // 校验是否为普通文件，防止传入目录对象导致 "Is a directory" 异常
+    if (!file.isFile()) {
+      return Collections.emptyMap();
+    }
     try {
       Map<String, Object> map = new Yaml().loadAs(Files.newInputStream(file.toPath()), Map.class);
       if (isEscape) {
