@@ -8,6 +8,7 @@ import top.csaf.idcard.IdCardUtil;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,14 +25,18 @@ public class IdCardUtilTest {
     assertEquals("01", idCard.getCityCode());
     assertEquals("01", idCard.getDistrictCode());
     assertEquals(LocalDate.of(1949, 10, 1), idCard.getBirthday());
-    assertEquals(75, idCard.getAge());
+
+    // 动态计算预期年龄，避免硬编码导致年份变化后测试失败
+    int expectedAge = Period.between(LocalDate.of(1949, 10, 1), LocalDate.now()).getYears();
+    assertEquals(expectedAge, idCard.getAge());
+
     assertEquals(1, idCard.getGender());
     assertEquals("X", idCard.getCheckCode());
 
-    assertEquals(LocalDateTime.of(1949,10,1,0,0,0),IdCardUtil.getBirthday(idCardNumber, LocalDateTime.class));
-    assertEquals(DateUtil.parseDate("1949-10-01"),IdCardUtil.getBirthday(idCardNumber, Date.class));
-    assertEquals("1949-10-01",IdCardUtil.getBirthday(idCardNumber, String.class));
-    assertEquals(DateUtil.parseDate("1949-10-01").getTime(),IdCardUtil.getBirthday(idCardNumber, Long.class));
+    assertEquals(LocalDateTime.of(1949, 10, 1, 0, 0, 0), IdCardUtil.getBirthday(idCardNumber, LocalDateTime.class));
+    assertEquals(DateUtil.parseDate("1949-10-01"), IdCardUtil.getBirthday(idCardNumber, Date.class));
+    assertEquals("1949-10-01", IdCardUtil.getBirthday(idCardNumber, String.class));
+    assertEquals(DateUtil.parseDate("1949-10-01").getTime(), IdCardUtil.getBirthday(idCardNumber, Long.class));
   }
 
   @Test
@@ -42,7 +47,7 @@ public class IdCardUtilTest {
     assertFalse(IdCardUtil.validate("01010119491001159X"));
 
     // 前 17 位必须是 0~9
-    assertFalse( IdCardUtil.validate("A1010119491001159X"));
+    assertFalse(IdCardUtil.validate("A1010119491001159X"));
     // 年月日校验
     assertFalse(IdCardUtil.validate("11010119491301159X"));
     // 顺序码不能全为 0
@@ -50,7 +55,7 @@ public class IdCardUtilTest {
     // 校验码校验
     assertFalse(IdCardUtil.validate("110101194910011591"));
 
-      // 必须是 0~9
+    // 必须是 0~9
     assertFalse(IdCardUtil.validate("11501066112198A"));
     // 年月日校验
     assertFalse(IdCardUtil.validate("115010661321989"));
