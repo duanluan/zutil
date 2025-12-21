@@ -2,6 +2,6 @@
   "label": "RegEx 正则",
   "link": {
     "type": "generated-index",
-    "description": "RegEx"
+    "description": "正则表达式处理（匹配/替换/提取）"
   }
 }

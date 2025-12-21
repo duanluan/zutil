@@ -2,6 +2,6 @@
   "label": "Pinyin 拼音",
   "link": {
     "type": "generated-index",
-    "description": "Pinyin"
+    "description": "拼音处理（转换/获取首字母）"
   }
 }

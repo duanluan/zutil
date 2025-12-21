@@ -2,6 +2,6 @@
   "label": "Date 时间",
   "link": {
     "type": "generated-index",
-    "description": "Date"
+    "description": "时间处理（格式化/解析/计算）"
   }
 }

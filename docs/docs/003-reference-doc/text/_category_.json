@@ -2,6 +2,6 @@
   "label": "Text 文本",
   "link": {
     "type": "generated-index",
-    "description": "Text"
+    "description": "文本处理（格式化/转换/校验）"
   }
 }
