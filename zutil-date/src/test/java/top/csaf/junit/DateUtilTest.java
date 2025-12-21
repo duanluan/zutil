@@ -167,7 +167,7 @@ class DateUtilTest {
     assertEquals(DateUtil.getFormatter(DatePattern.MM_DD, null, ZoneId.systemDefault()).parse("08-08").get(ChronoField.YEAR), 0);
 
     // 地区为简体中文，可以解析星期几
-    assertEquals(DateUtil.getFormatter("MM-dd EEE", Locale.SIMPLIFIED_CHINESE).parse("08-15 星期二").get(ChronoField.DAY_OF_WEEK), 2);
+    assertEquals(DateUtil.getFormatter("MM-dd EEEE", Locale.SIMPLIFIED_CHINESE).parse("08-15 星期二").get(ChronoField.DAY_OF_WEEK), 2);
     // ZonedDateTime.parse 后时区为 +8，但本地时区就是 +8，所以此时 getHour() 为 0，再 withZoneSameInstant 转换为 UTC 时区，少 8 小时，所以 getHour() 会 -8，就是 16
     assertEquals(ZonedDateTime.parse("00", DateUtil.getFormatter("HH", ZoneOffset.ofHours(8))).withZoneSameInstant(ZoneOffset.UTC).getHour(), 16);
 
@@ -177,8 +177,8 @@ class DateUtilTest {
   @DisplayName("convertByPattern：转换需要格式化的字符串，比如英文月份转换为首字母大写")
   @Test
   void convertSource() {
-    assertThrows(IllegalArgumentException.class, () -> ReflectionTestUtil.invokeMethod(DateUtil.class, "convertByPattern", "mon", ""));
-    assertEquals(ReflectionTestUtil.invokeMethod(DateUtil.class, "convertByPattern", "mon", "MMM"), "Mon");
+    assertThrows(IllegalArgumentException.class, () -> ReflectionTestUtil.invokeMethod(DateUtil.class, "convertSource", "mon", ""));
+    assertEquals(ReflectionTestUtil.invokeMethod(DateUtil.class, "convertSource", "mon", "MMM"), "Mon");
   }
 
   @DisplayName("convertMonth[Short]Text：转换数字月到[短]文本月")
