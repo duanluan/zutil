@@ -1015,19 +1015,36 @@ public class DateUtil extends org.apache.commons.lang3.time.DateUtils {
    * @return 时间戳（毫秒）
    */
   public static long toEpochMilli(@NonNull final Temporal temporal, final ZoneId zoneId) {
-    ZoneId zoneId1 = DateFeat.get(zoneId);
+    // ZonedDateTime 和 OffsetDateTime 自带时区，直接转换 (避免 NPE 且逻辑更优)
     if (temporal instanceof ZonedDateTime) {
-      return ((ZonedDateTime) temporal).withZoneSameInstant(zoneId1).toInstant().toEpochMilli();
-    } else if (temporal instanceof LocalDateTime) {
+      return ((ZonedDateTime) temporal).toInstant().toEpochMilli();
+    } else if (temporal instanceof OffsetDateTime) {
+      return ((OffsetDateTime) temporal).toInstant().toEpochMilli();
+    }
+
+    // 其他类型需要时区，如果 DateFeat 没取到，则默认为系统时区
+    ZoneId zoneId1 = DateFeat.get(zoneId);
+    if (zoneId1 == null) {
+      zoneId1 = ZoneId.systemDefault();
+    }
+
+    if (temporal instanceof LocalDateTime) {
       return ((LocalDateTime) temporal).atZone(zoneId1).toInstant().toEpochMilli();
     } else if (temporal instanceof LocalDate) {
       return ((LocalDate) temporal).atStartOfDay(zoneId1).toInstant().toEpochMilli();
     } else if (temporal instanceof LocalTime) {
-      return ((LocalTime) temporal).atDate(LocalDate.of(DateFeat.getLazyMinDateYear(DateConst.DEFAULT_MIN_DATE_YEAR).intValue(), 1, 1))
-        .atZone(zoneId1).toInstant().toEpochMilli();
-    } else if (temporal instanceof OffsetDateTime) {
-      return ((OffsetDateTime) temporal).atZoneSameInstant(zoneId1).toInstant().toEpochMilli();
+      // 修复 Long 转 int 可能的 NPE 问题
+      Long minYearLong = DateFeat.getLazyMinDateYear(DateConst.DEFAULT_MIN_DATE_YEAR);
+      // 如果获取失败（虽然不太可能），给一个绝对安全的默认值 1970
+      int year = (minYearLong != null) ? minYearLong.intValue() : 1970;
+
+      return ((LocalTime) temporal)
+        .atDate(LocalDate.of(year, 1, 1))
+        .atZone(zoneId1)
+        .toInstant()
+        .toEpochMilli();
     }
+
     throw new IllegalArgumentException("temporal must be ZonedDateTime, LocalDateTime, LocalDate, LocalTime, or OffsetDateTime");
   }
 
