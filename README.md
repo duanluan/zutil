@@ -193,4 +193,4 @@ Mode (`org.openjdk.jmh.annotations.Mode`):
     - Run `mvn jacoco:report` to generate the code coverage report in the `target/site` directory.
     - Ensure coverage of updated classes or methods is above **90%** before submitting.
     - Parameter validation using `lombok.NonNull` can be ignored.
-4. Follow the **[Angular Commit Message Guidelines](https://github.com/angular/angular/blob/22b96b9/CONTRIBUTING.md#-commit-message-guidelines)** when committing, then create a **pull request**.
+4. Please read and follow the **[Commit Convention](./COMMIT_CONVENTION.md)** (based on Angular guidelines) to ensure the bilingual format is correct, then create a **pull request**.
