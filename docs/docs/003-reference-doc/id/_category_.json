@@ -2,6 +2,6 @@
   "label": "ID 生成",
   "link": {
     "type": "generated-index",
-    "description": ""
+    "description": "UUID、ULID、NanoID、雪花算法等。"
   }
 }

@@ -14,18 +14,6 @@
 * **全方法支持**: 覆盖 GET, POST, PUT, PATCH, DELETE 等主流 HTTP 方法。
 * **便捷工具**: 提供 URL 参数拼接 (`toUrlParams`) 和解析 (`toMapParams`) 等实用方法。
 
-## 🛠️ 引入依赖
-
-请在项目中引入 `zutil-http` 即可，**无需**额外手动引入 `okhttps` 或 `fastjson2`（已自动包含）。
-
-```xml
-<dependency>
-    <groupId>top.csaf</groupId>
-    <artifactId>zutil-http</artifactId>
-    <version>最新版本</version>
-</dependency>
-```
-
 ## 🚀 快速开始
 
 > 💡 **提示**：为了代码规范，建议配合 `HeaderConst` 和 `ContentTypeConst` 使用，详见 [常量类文档](./001-constant.md)。
