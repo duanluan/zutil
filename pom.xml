@@ -48,6 +48,7 @@
     <module>zutil-date</module>
     <module>zutil-img</module>
     <module>zutil-awt</module>
+    <module>zutil-id</module>
   </modules>
 
   <properties>

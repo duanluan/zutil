@@ -1,9 +1,12 @@
 # 不兼容变更
 
+* 2.0.0
+  * `ContentTypeConst`、`HeaderConst`、`ReqMethodConst`移至`http.constant`包下。
+  * `NanoIdUtil`等 ID 工具类移至`id`包下。
 * 2.0.0-alpha5
   * 大幅修改`RegExUtil`中的匹配、替换方法。
   * 删除`FlagsEnum`和`RegExUtil`中的相关方法。
-* 2.0.0
+* 2.0.0-alpha1
   * 分模块。
 * 1.14.1
   * 删除`crypto.SecurityUtil`。

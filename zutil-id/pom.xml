@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <packaging>jar</packaging>
+
+  <parent>
+    <groupId>top.csaf</groupId>
+    <artifactId>zutil-parent</artifactId>
+    <version>2.0.0-beta1</version>
+  </parent>
+
+  <artifactId>zutil-id</artifactId>
+  <name>${project.artifactId}</name>
+  <url>https://github.com/duanluan/zutil/zutil-id</url>
+  <description>Java ID Util for ZUtil</description>
+  <licenses>
+    <license>
+      <name>Apache License 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/duanluan/zutil/issues</url>
+  </issueManagement>
+  <developers>
+    <developer>
+      <name>duanluan</name>
+      <email>duanluan@outlook.com</email>
+      <organization>计算机科学与艺术基金会（CSAF）</organization>
+      <organizationUrl>https://github.com/csa-f</organizationUrl>
+      <timezone>+8</timezone>
+    </developer>
+  </developers>
+  <scm>
+    <url>https://github.com/duanluan/zutil/tree/main/zutil-id</url>
+  </scm>
+
+  <dependencies>
+    <!-- A Java library for generating ULIDs (Universally Unique Lexicographically Sortable Identifier). -->
+    <dependency>
+      <groupId>com.github.f4b6a3</groupId>
+      <artifactId>ulid-creator</artifactId>
+    </dependency>
+    <!-- A Java library to generate RFC-4122 Universally Unique Identifiers (UUID). -->
+    <dependency>
+      <groupId>com.github.f4b6a3</groupId>
+      <artifactId>uuid-creator</artifactId>
+    </dependency>
+  </dependencies>
+</project>
