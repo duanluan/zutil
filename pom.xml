@@ -55,45 +55,53 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <serverId>central</serverId>
 
-    <lombok.version>1.18.36</lombok.version>
-    <slf4j.version>1.7.36</slf4j.version>
-    <gson.version>2.11.0</gson.version>
-    <jackson.version>2.18.2</jackson.version>
-    <fastjson.version>2.0.53</fastjson.version>
-    <commons.lang.version>3.17.0</commons.lang.version>
-    <commons.text.version>1.12.0</commons.text.version>
-    <commons.collections.version>4.5.0-M2</commons.collections.version>
-    <commons.io.version>2.18.0</commons.io.version>
-    <commons.beanutils.version>1.9.4</commons.beanutils.version>
+    <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
+    <maven.surefire.plugin.version>3.5.4</maven.surefire.plugin.version>
+    <jacoco.plugin.version>0.8.14</jacoco.plugin.version>
+    <maven.source.plugin.version>3.4.0</maven.source.plugin.version>
+    <maven.javadoc.plugin.version>3.12.0</maven.javadoc.plugin.version>
+    <maven.gpg.plugin.version>3.2.8</maven.gpg.plugin.version>
+    <central.publishing.plugin.version>0.9.0</central.publishing.plugin.version>
+
+    <lombok.version>1.18.42</lombok.version>
+    <slf4j.version>2.0.17</slf4j.version>
+    <gson.version>2.13.2</gson.version>
+    <jackson.version>2.20.1</jackson.version>
+    <fastjson.version>2.0.60</fastjson.version>
+    <commons.lang.version>3.20.0</commons.lang.version>
+    <commons.text.version>1.15.0</commons.text.version>
+    <commons.collections.version>4.5.0</commons.collections.version>
+    <commons.io.version>2.21.0</commons.io.version>
+    <commons.beanutils.version>1.11.0</commons.beanutils.version>
     <okhttps.version>4.0.3</okhttps.version>
     <okio.version>3.9.0</okio.version>
-    <spring.beans.version>5.3.39</spring.beans.version>
-    <bouncycastle.version>1.79</bouncycastle.version>
-    <commons.codec.version>1.17.1</commons.codec.version>
-    <dom4j.version>2.1.4</dom4j.version>
-    <snakeyaml.version>2.3</snakeyaml.version>
-    <batik.version>1.18</batik.version>
-    <thumbnailator.version>0.4.20</thumbnailator.version>
+    <spring.beans.version>7.0.2</spring.beans.version>
+    <bouncycastle.version>1.83</bouncycastle.version>
+    <commons.codec.version>1.20.0</commons.codec.version>
+    <dom4j.version>2.2.0</dom4j.version>
+    <snakeyaml.version>2.5</snakeyaml.version>
+    <batik.version>1.19</batik.version>
+    <thumbnailator.version>0.4.21</thumbnailator.version>
     <okhttps.version>4.1.0</okhttps.version>
     <okio.version>3.16.4</okio.version>
     <transmittable.thread.local.version>2.14.5</transmittable.thread.local.version>
     <ulid.creator.version>5.2.3</ulid.creator.version>
     <uuid.creator.version>6.1.1</uuid.creator.version>
 
-    <junit.version>5.11.0</junit.version>
-    <junit.platform.version>1.11.0</junit.platform.version>
-    <spring.test.version>5.3.39</spring.test.version>
+    <junit.version>6.1.0-M1</junit.version>
+    <junit.platform.version>6.1.0-M1</junit.platform.version>
+    <spring.test.version>7.0.2</spring.test.version>
     <jmh.version>1.37</jmh.version>
-    <hutool.version>5.8.32</hutool.version>
-    <jsoup.version>1.18.1</jsoup.version>
-    <mockwebserver.version>4.12.0</mockwebserver.version>
+    <hutool.version>5.8.42</hutool.version>
+    <jsoup.version>1.21.2</jsoup.version>
+    <mockwebserver.version>5.3.2</mockwebserver.version>
     <tinypinyin.version>2.0.3.RELEASE</tinypinyin.version>
-    <kryo.version>5.6.0</kryo.version>
-    <fst.version>2.57</fst.version>
-    <wicketstuff.serializer.version>10.1.1</wicketstuff.serializer.version>
+    <kryo.version>5.6.2</kryo.version>
+    <fst.version>3.0.4-jdk17</fst.version>
+    <wicketstuff.serializer.version>10.7.0</wicketstuff.serializer.version>
     <hessian.version>4.0.66</hessian.version>
     <protostuff.version>1.8.0</protostuff.version>
-    <dyuproject.protostuff.version>1.3.0</dyuproject.protostuff.version>
+    <dyuproject.protostuff.version>1.4.0</dyuproject.protostuff.version>
     <objenesis.version>3.4</objenesis.version>
   </properties>
 
@@ -403,7 +411,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.14.0</version>
+          <version>${maven.compiler.plugin.version}</version>
           <!-- compiler:compile https://maven.apache.org/plugins/maven-compiler-plugin/compile-mojo.html -->
           <configuration>
             <!-- Setting the -source and -target of the Java Compiler https://maven.apache.org/plugins/maven-compiler-plugin/examples/set-compiler-source-and-target.html -->
@@ -419,7 +427,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.5.4</version>
+          <version>${maven.surefire.plugin.version}</version>
           <!-- surefire:test https://maven.apache.org/surefire/maven-surefire-plugin/test-mojo.html -->
           <configuration>
             <!-- 忽略测试失败 https://maven.apache.org/surefire/maven-surefire-plugin/test-mojo.html#testFailureIgnore -->
@@ -444,7 +452,7 @@
         <plugin>
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
-          <version>0.8.13</version>
+          <version>${jacoco.plugin.version}</version>
           <configuration>
             <!-- 指定包含 JaCoCo 代理的属性名 https://www.eclemma.org/jacoco/trunk/doc/prepare-agent-mojo.html#propertyName -->
             <!-- 使用 maven-surefire-plugin 时会覆盖 VM 参数，所以需要取名并配置到 maven-surefire-plugin 的 argLine 中 -->
@@ -466,7 +474,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>3.3.1</version>
+          <version>${maven.source.plugin.version}</version>
           <executions>
             <execution>
               <id>attach-sources</id>
@@ -482,7 +490,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.11.3</version>
+          <version>${maven.javadoc.plugin.version}</version>
           <configuration>
             <!-- 关闭 doclint，避免因为 Javadoc 格式问题导致构建失败 https://maven.apache.org/plugins/maven-javadoc-plugin/javadoc-mojo.html#doclint -->
             <doclint>none</doclint>
@@ -503,7 +511,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-gpg-plugin</artifactId>
-          <version>1.6</version>
+          <version>${maven.gpg.plugin.version}</version>
           <executions>
             <execution>
               <id>sign-artifacts</id>
@@ -534,7 +542,7 @@
         <plugin>
           <groupId>org.sonatype.central</groupId>
           <artifactId>central-publishing-maven-plugin</artifactId>
-          <version>0.8.0</version>
+          <version>${central.publishing.plugin.version}</version>
           <extensions>true</extensions>
           <configuration>
             <publishingServerId>central</publishingServerId>
