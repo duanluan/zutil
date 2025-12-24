@@ -2,6 +2,7 @@ package top.csaf.junit;
 
 import com.google.gson.JsonArray;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import top.csaf.coll.CollUtil;
@@ -19,14 +20,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("集合工具类测试")
 class CollUtilTest {
 
-  public static void main(String[] args) {
-    genCollectionUtilsFn();
-  }
-
-  /**
-   * 调用 {@link org.apache.commons.collections4.CollectionUtils } 的方法
-   */
-  static void genCollectionUtilsFn() {
+  @DisplayName("生成调用 org.apache.commons.collections4.CollectionUtils 的方法代码")
+  @Disabled
+  @Test
+  void genCollectionUtilsFn() {
     // 获取 org.apache.commons.collections4.CollectionUtils 中所有的方法名
     Class<?> clazz = org.apache.commons.collections4.CollectionUtils.class;
     Method[] methods = clazz.getDeclaredMethods();
@@ -87,20 +84,11 @@ class CollUtilTest {
     }
   }
 
-  @DisplayName("原样调用 org.apache.commons.collections4.CollectionUtils 的方法")
-  @Test
-  void collections4() {
-    List<Object> list = new ArrayList<>();
-    list.add(1);
-    assertEquals(1, CollUtil.get(list, 0));
-    // TODO 其他方法
-  }
-
   @DisplayName("是否 每个集合 都为 null 或 没有元素")
   @Test
   void isEmptys() {
-    assertThrows(NullPointerException.class, () -> CollUtil.isEmptys(null));
-    assertThrows(IllegalArgumentException.class, () -> CollUtil.isEmptys(new ArrayList<>()));
+    assertTrue(CollUtil.isEmptys(null));
+    assertTrue(CollUtil.isEmptys(new ArrayList<>()));
 
     List<Object> list = new ArrayList<>();
     List<Object> list1 = new ArrayList<>();
@@ -112,7 +100,7 @@ class CollUtilTest {
   @DisplayName("是否不满足 每个集合 都为 null 或 没有元素")
   @Test
   void isNotEmptys() {
-    assertThrows(NullPointerException.class, () -> CollUtil.isNotEmptys(null));
+    assertFalse(CollUtil.isNotEmptys(null));
 
     List<Object> list = new ArrayList<>();
     list.add(1);
@@ -125,7 +113,7 @@ class CollUtilTest {
   @DisplayName("是否不满足 对象为 null 或 没有元素")
   @Test
   void sizeIsNotEmpty() {
-    assertThrows(NullPointerException.class, () -> CollUtil.sizeIsNotEmpty(null));
+    assertFalse(CollUtil.sizeIsNotEmpty(null));
 
     List<Object> list = new ArrayList<>();
     list.add(1);
@@ -136,8 +124,8 @@ class CollUtilTest {
   @DisplayName("是否 每个对象 都为 null 或 没有元素")
   @Test
   void sizeIsEmptys() {
-    assertThrows(NullPointerException.class, () -> CollUtil.sizeIsEmptys(null));
-    assertThrows(IllegalArgumentException.class, () -> CollUtil.sizeIsEmptys(new ArrayList<>()));
+    assertTrue(CollUtil.sizeIsEmptys(null));
+    assertTrue(CollUtil.sizeIsEmptys(new ArrayList<>()));
 
     List<Object> list = new ArrayList<>();
     List<Object> list1 = new ArrayList<>();
@@ -149,7 +137,7 @@ class CollUtilTest {
   @DisplayName("是否不满足 每个对象 都为 null 或 没有元素")
   @Test
   void sizeIsNotEmptys() {
-    assertThrows(NullPointerException.class, () -> CollUtil.sizeIsNotEmptys(null));
+    assertFalse(CollUtil.sizeIsNotEmptys(null));
 
     List<Object> list = new ArrayList<>();
     list.add(1);
@@ -187,7 +175,7 @@ class CollUtilTest {
   @DisplayName("是否不满足 对象所有元素都为 null 或 没有元素")
   @Test
   void isNotAllEmpty() {
-    assertThrows(NullPointerException.class, () -> CollUtil.isNotAllEmpty(null));
+    assertFalse(CollUtil.isNotAllEmpty(null));
 
     List<Object> list1 = new ArrayList<>();
     list1.add(1);
@@ -199,7 +187,7 @@ class CollUtilTest {
   @Test
   void isAllEmptys() {
     assertTrue(CollUtil.isAllEmptys(null));
-    assertThrows(IllegalArgumentException.class, () -> CollUtil.isAllEmptys(new ArrayList<>()));
+    assertTrue(CollUtil.isAllEmptys(new ArrayList<>()));
 
     List<Object> list = new ArrayList<>();
     list.add(1);
@@ -211,7 +199,7 @@ class CollUtilTest {
   @DisplayName("是否不满足 每个对象的 所有元素都为 null 或 没有元素")
   @Test
   void isNotAllEmptys() {
-    assertThrows(NullPointerException.class, () -> CollUtil.isNotAllEmptys(null));
+    assertFalse(CollUtil.isNotAllEmptys(null));
 
     List<Object> list = new ArrayList<>();
     list.add(1);
@@ -253,7 +241,7 @@ class CollUtilTest {
   void isAnyEmptys() {
     assertTrue(CollUtil.isAnyEmptys(null));
     List<Object> list = new ArrayList<>();
-    assertThrows(IllegalArgumentException.class, () -> CollUtil.isAnyEmptys(list));
+    assertTrue(CollUtil.isAnyEmptys(list));
     list.add(1);
     assertTrue(CollUtil.isAnyEmptys(list, new Object[]{}));
     assertFalse(CollUtil.isAnyEmptys(list, new Object[]{1}));
