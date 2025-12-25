@@ -2,7 +2,7 @@
 
 > 📦 **包路径**: `top.csaf.id.SnowFlake`
 >
-> 🔗 **所属模块**: `zutil-all`
+> 🔗 **所属模块**: `zutil-id`
 
 `SnowFlake` 是基于 Twitter 雪花算法（Snowflake）实现的分布式唯一 ID 生成器。
 

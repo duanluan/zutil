@@ -2,7 +2,7 @@
 
 > 📦 **包路径**: `top.csaf.id.UlidUtil`
 >
-> 🔗 **所属模块**: `zutil-all`
+> 🔗 **所属模块**: `zutil-id`
 
 **UlidUtil** 是对高性能库 `ulid-creator` 的封装，提供 **ULID** (Universally Unique Lexicographically Sortable Identifier) 的生成与校验功能。
 

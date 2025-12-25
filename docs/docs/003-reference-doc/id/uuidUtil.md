@@ -2,7 +2,7 @@
 
 > 📦 **包路径**: `top.csaf.id.UuidUtil`
 >
-> 🔗 **所属模块**: `zutil-all`
+> 🔗 **所属模块**: `zutil-id`
 
 `UuidUtil` 是基于 `f4b6a3/uuid-creator` 的全功能 UUID 工具箱。它不仅支持 RFC 9562 (V7) 等全版本生成，还提供了强大的格式转换（Base62/Base64）和时间戳回溯能力。
 

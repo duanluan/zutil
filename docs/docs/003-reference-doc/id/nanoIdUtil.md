@@ -2,7 +2,7 @@
 
 > 📦 **包路径**: `top.csaf.id.NanoIdUtil`
 >
-> 🔗 **所属模块**: `zutil-all`
+> 🔗 **所属模块**: `zutil-id`
 
 **NanoID** 是一个轻量级、安全、URL 友好的唯一字符串 ID 生成器。
 相较于 UUID，NanoID 体积更小（默认 21 位），但拥有相似的碰撞概率。
