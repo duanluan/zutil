@@ -16,6 +16,16 @@ import java.util.List;
 public class JsonUtil {
 
   /**
+   * 对象转 JSON 字符串，输出值为 null 的字段
+   *
+   * @param object 对象
+   * @return JSON 字符串
+   */
+  public static String toJson(@NonNull final Object object) {
+    return toJson(object, JSONWriter.Feature.WriteMapNullValue);
+  }
+
+  /**
    * 对象转 JSON 字符串
    *
    * @param object   对象
@@ -23,12 +33,11 @@ public class JsonUtil {
    * @return JSON 字符串
    */
   public static String toJson(@NonNull final Object object, final JSONWriter.Feature... features) {
-    // 设置输出行为
-    if (CollUtil.sizeIsNotEmpty(features)) {
-      // 输出值为 null 的字段
-      return JSON.toJSONString(object, features);
+    if (CollUtil.sizeIsEmpty(features)) {
+      return toJson(object);
     }
-    return JSON.toJSONString(object, JSONWriter.Feature.WriteMapNullValue);
+    // 设置输出行为
+    return JSON.toJSONString(object, features);
   }
 
   /**
