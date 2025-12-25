@@ -74,8 +74,8 @@
     <commons.collections.version>4.5.0</commons.collections.version>
     <commons.io.version>2.21.0</commons.io.version>
     <commons.beanutils.version>1.11.0</commons.beanutils.version>
-    <okhttps.version>4.0.3</okhttps.version>
-    <okio.version>3.9.0</okio.version>
+    <okhttps.version>4.1.0</okhttps.version>
+    <okio.version>3.16.4</okio.version>
     <spring.beans.version>7.0.2</spring.beans.version>
     <bouncycastle.version>1.83</bouncycastle.version>
     <commons.codec.version>1.20.0</commons.codec.version>
@@ -83,8 +83,6 @@
     <snakeyaml.version>2.5</snakeyaml.version>
     <batik.version>1.19</batik.version>
     <thumbnailator.version>0.4.21</thumbnailator.version>
-    <okhttps.version>4.1.0</okhttps.version>
-    <okio.version>3.16.4</okio.version>
     <transmittable.thread.local.version>2.14.5</transmittable.thread.local.version>
     <ulid.creator.version>5.2.3</ulid.creator.version>
     <uuid.creator.version>6.1.1</uuid.creator.version>
@@ -95,7 +93,7 @@
     <jmh.version>1.37</jmh.version>
     <hutool.version>5.8.42</hutool.version>
     <jsoup.version>1.21.2</jsoup.version>
-    <mockwebserver.version>5.3.2</mockwebserver.version>
+    <mockwebserver.version>3.14.9</mockwebserver.version>
     <tinypinyin.version>2.0.3.RELEASE</tinypinyin.version>
     <kryo.version>5.6.2</kryo.version>
     <fst.version>3.0.4-jdk17</fst.version>
@@ -124,14 +122,19 @@
         <version>${slf4j.version}</version>
       </dependency>
       <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
         <version>${gson.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>${jackson.version}</version>
+        <groupId>com.alibaba</groupId>
+        <artifactId>fastjson</artifactId>
+        <version>${fastjson.version}</version>
       </dependency>
       <dependency>
         <groupId>com.alibaba.fastjson2</groupId>
@@ -165,7 +168,7 @@
       </dependency>
       <dependency>
         <groupId>cn.zhxu</groupId>
-        <artifactId>okhttps-fastjson2</artifactId>
+        <artifactId>okhttps</artifactId>
         <version>${okhttps.version}</version>
       </dependency>
       <dependency>

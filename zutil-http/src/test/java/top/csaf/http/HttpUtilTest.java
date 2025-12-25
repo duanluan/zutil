@@ -116,17 +116,17 @@ class HttpUtilTest {
     String jsonObj = "{\"name\":\"test\"}";
     String jsonArr = "[1, 2]";
 
-    // 1. String
+    // String
     server.enqueue(new MockResponse().setBody(jsonObj));
     assertEquals(jsonObj, HttpUtil.get(baseUrl, String.class));
 
-    // 2. HttpResult.Body (补全覆盖)
+    // HttpResult.Body
     server.enqueue(new MockResponse().setBody(jsonObj));
     cn.zhxu.okhttps.HttpResult.Body body = HttpUtil.get(baseUrl, cn.zhxu.okhttps.HttpResult.Body.class);
     assertNotNull(body);
     assertEquals(jsonObj, body.toString());
 
-    // 3. Jackson (JsonNode, ObjectNode, ArrayNode)
+    // Jackson：JsonNode、ObjectNode、ArrayNode
     server.enqueue(new MockResponse().setBody(jsonObj));
     assertEquals("test", HttpUtil.get(baseUrl, JsonNode.class).get("name").asText());
     server.enqueue(new MockResponse().setBody(jsonObj));
@@ -134,35 +134,27 @@ class HttpUtilTest {
     server.enqueue(new MockResponse().setBody(jsonArr));
     assertEquals(1, HttpUtil.get(baseUrl, ArrayNode.class).get(0).asInt());
 
-    // 4. Fastjson (JSONObject, JSONArray, JSON)
-    server.enqueue(new MockResponse().setBody(jsonObj));
-    assertEquals("test", HttpUtil.get(baseUrl, JSONObject.class).getString("name"));
-
-    // 补全覆盖: JSONArray
-    server.enqueue(new MockResponse().setBody(jsonArr));
-    JSONArray fastJsonArr = HttpUtil.get(baseUrl, JSONArray.class);
-    assertEquals(1, fastJsonArr.get(0));
-
-    // 补全覆盖: JSON (通用)
-    server.enqueue(new MockResponse().setBody(jsonObj));
-    JSONObject fastJsonObj = (JSONObject) HttpUtil.get(baseUrl, JSON.class);
-    assertEquals("test", fastJsonObj.getString("name"));
-
-    // 5. Gson (JsonObject, JsonArray, JsonElement)
+    // Gson：JsonObject、JsonArray、JsonElement
     server.enqueue(new MockResponse().setBody(jsonObj));
     assertEquals("test", HttpUtil.get(baseUrl, JsonObject.class).get("name").getAsString());
-
-    // 补全覆盖: JsonArray
     server.enqueue(new MockResponse().setBody(jsonArr));
     JsonArray gsonArr = HttpUtil.get(baseUrl, JsonArray.class);
     assertEquals(1, gsonArr.get(0).getAsInt());
-
-    // 补全覆盖: JsonElement
     server.enqueue(new MockResponse().setBody(jsonObj));
     JsonElement gsonEl = HttpUtil.get(baseUrl, JsonElement.class);
     assertTrue(gsonEl.isJsonObject());
 
-    // 6. POJO
+    // Fastjson：JSONObject、JSONArray、JSON
+    server.enqueue(new MockResponse().setBody(jsonObj));
+    assertEquals("test", HttpUtil.get(baseUrl, JSONObject.class).getString("name"));
+    server.enqueue(new MockResponse().setBody(jsonArr));
+    JSONArray fastJsonArr = HttpUtil.get(baseUrl, JSONArray.class);
+    assertEquals(1, fastJsonArr.get(0));
+    server.enqueue(new MockResponse().setBody(jsonObj));
+    JSONObject fastJsonObj = (JSONObject) HttpUtil.get(baseUrl, JSON.class);
+    assertEquals("test", fastJsonObj.getString("name"));
+
+    // POJO
     server.enqueue(new MockResponse().setBody(jsonObj));
     assertEquals("test", HttpUtil.get(baseUrl, TestBean.class).getName());
   }
