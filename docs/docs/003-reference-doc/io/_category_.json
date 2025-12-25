@@ -1,0 +1,7 @@
+{
+  "label": "IO 文件流",
+  "link": {
+    "type": "generated-index",
+    "description": "文件操作、资源加载、流处理工具 (继承 Commons IO)。"
+  }
+}

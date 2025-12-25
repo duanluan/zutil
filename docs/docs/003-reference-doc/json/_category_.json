@@ -1,0 +1,7 @@
+{
+  "label": "JSON 处理",
+  "link": {
+    "type": "generated-index",
+    "description": "JSON 序列化与反序列化工具 (支持 Gson/Jackson/Fastjson)。"
+  }
+}
