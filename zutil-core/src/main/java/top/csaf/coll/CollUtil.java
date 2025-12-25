@@ -1,13 +1,13 @@
 package top.csaf.coll;
 
 
-import com.google.gson.JsonPrimitive;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.EnumerationUtils;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.collections4.Predicate;
 import org.apache.commons.collections4.Transformer;
+import top.csaf.lang.JsonReflectUtil;
 
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
@@ -613,12 +613,8 @@ public class CollUtil {
 
         while (iterator.hasNext()) {
           Object nextObj = iterator.next();
-          /** {@link com.google.gson.JsonArray } 循环时需转换为 JsonPrimitive 后处理 */
-          if (nextObj instanceof JsonPrimitive) {
-            JsonPrimitive jsonPrimitive = (JsonPrimitive) nextObj;
-            nextObj = jsonPrimitive.isNumber() ? jsonPrimitive.getAsBigDecimal() : jsonPrimitive.getAsString();
-          }
-
+          // 如果是 JSON 元素则获取其值
+          nextObj = JsonReflectUtil.getValue(nextObj);
           // 转为字符串，Number 小数点后多余的 0 会被去除
           nextObj = stripTrailingZerosToString(nextObj, isToString);
           // 首次判断前跳过第一次循环
@@ -884,12 +880,8 @@ public class CollUtil {
 
         for (int i = 0; iterator.hasNext(); i++) {
           Object nextObj = iterator.next();
-          /** {@link com.google.gson.JsonArray } 循环时需转换为 JsonPrimitive 后处理 */
-          if (nextObj instanceof JsonPrimitive) {
-            JsonPrimitive jsonPrimitive = (JsonPrimitive) nextObj;
-            nextObj = jsonPrimitive.isNumber() ? jsonPrimitive.getAsBigDecimal() : jsonPrimitive.getAsString();
-          }
-
+          // 如果是 JSON 元素则获取其值
+          nextObj = JsonReflectUtil.getValue(nextObj);
           // 转为字符串，Number 小数点后多余的 0 会被去除
           nextObj = stripTrailingZerosToString(nextObj, isToString);
           // 如果上一次列表的长度 < i + 1，即 prevList（上一次列表）未填充完需要判断的第一个对象的所有元素

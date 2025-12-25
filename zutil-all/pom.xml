@@ -113,6 +113,21 @@
 
 
     <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!--<dependency>-->
+    <!--  <groupId>com.alibaba.fastjson2</groupId>-->
+    <!--  <artifactId>fastjson2</artifactId>-->
+    <!--  <scope>test</scope>-->
+    <!--</dependency>-->
+    <dependency>
       <groupId>com.esotericsoftware</groupId>
       <artifactId>kryo</artifactId>
       <scope>test</scope>
