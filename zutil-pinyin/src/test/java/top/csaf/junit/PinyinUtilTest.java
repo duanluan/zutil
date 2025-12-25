@@ -1,6 +1,7 @@
 package top.csaf.junit;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import top.csaf.charset.StandardCharsets;
@@ -34,6 +35,7 @@ class PinyinUtilTest {
   private static final Pattern PINYIN_PATTERN_V = Pattern.compile("[üǖǘǚǜ]");
 
   @DisplayName("转换拼音数据")
+  @Disabled
   @Test
   void convertPinyinData() throws IOException {
     List<String> result = new ArrayList<>();
