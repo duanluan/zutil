@@ -1,0 +1,7 @@
+{
+  "label": "Thread 线程工具",
+  "link": {
+    "type": "generated-index",
+    "description": "提供线程本地变量管理（TTL 支持）、线程安全操作等功能。"
+  }
+}
