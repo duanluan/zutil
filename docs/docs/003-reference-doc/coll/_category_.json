@@ -1,0 +1,7 @@
+{
+  "label": "集合处理",
+  "link": {
+    "type": "generated-index",
+    "description": "集合操作增强工具，提供深度比较、空值校验、集合运算等功能。"
+  }
+}
