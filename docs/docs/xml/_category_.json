@@ -1,0 +1,7 @@
+{
+  "label": "Xml XML 处理",
+  "link": {
+    "type": "generated-index",
+    "description": "提供 XML 的多源读取、格式化写入以及 XML 与 JSON/Bean 的互转功能。"
+  }
+}
