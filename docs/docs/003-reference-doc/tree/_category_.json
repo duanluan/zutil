@@ -1,0 +1,7 @@
+{
+  "label": "Tree 树结构",
+  "link": {
+    "type": "generated-index",
+    "description": "提供树形结构的构建、扁平化转换及自定义配置功能。"
+  }
+}
