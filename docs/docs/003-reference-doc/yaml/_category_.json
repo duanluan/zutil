@@ -1,0 +1,7 @@
+{
+  "label": "Yaml 处理",
+  "link": {
+    "type": "generated-index",
+    "description": "提供 YAML 文件的加载、深层值获取以及变量占位符递归替换功能。"
+  }
+}
