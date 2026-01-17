@@ -1,7 +1,7 @@
 {
-  "label": "集合处理",
+  "label": "Coll 集合工具",
   "link": {
     "type": "generated-index",
-    "description": "集合操作增强工具，提供深度比较、空值校验、集合运算等功能。"
+    "description": "提供集合与 Map 的深度操作、空值校验、集合运算等增强功能。"
   }
 }

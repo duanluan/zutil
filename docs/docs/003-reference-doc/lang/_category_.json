@@ -1,7 +1,7 @@
 {
-  "label": "语言基础",
+  "label": "Lang 核心工具",
   "link": {
     "type": "generated-index",
-    "description": "Java 语言基础增强工具，涵盖数组、字符串、数字、对象、类操作等核心功能。"
+    "description": "提供针对 Java 核心基础类型（String, Number, Array, Class 等）的增强工具类。"
   }
 }

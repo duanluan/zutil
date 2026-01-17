@@ -1,7 +1,7 @@
 {
-  "label": "字符集",
+  "label": "Charset 字符集",
   "link": {
     "type": "generated-index",
-    "description": "常用字符集常量定义。"
+    "description": "提供常用字符集（如 GB2312, UTF-8）的标准常量定义。"
   }
 }
