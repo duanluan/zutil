@@ -1,0 +1,7 @@
+{
+  "label": "Img 图片处理",
+  "link": {
+    "type": "generated-index",
+    "description": "提供 SVG 格式转换（转 PNG/JPG/TIFF）及图片压缩功能。"
+  }
+}
