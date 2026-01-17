@@ -1,0 +1,7 @@
+{
+  "label": "IdCard 证件工具",
+  "link": {
+    "type": "generated-index",
+    "description": "提供中国居民身份证的解析、校验、信息提取等功能。"
+  }
+}
