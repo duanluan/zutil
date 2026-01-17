@@ -19,10 +19,10 @@
 
 用于判断给定的类 (`Class`) 或对象实例 (`Object`) 是否为基本数据类型的**包装类**。
 
-| 方法名 | 描述 | 示例 |
-| :--- | :--- | :--- |
-| `isPrimitiveType(Class<?>...)` | 判断传入的**类**是否均为基本类型的包装类。 | `Integer.class` -> `true`<br>`String.class` -> `false` |
-| `isPrimitiveType(Object...)` | 判断传入的**对象**是否均为基本类型的包装类实例。 | `1` (Integer) -> `true`<br>`"abc"` -> `false` |
+| 方法名                            | 描述                         | 示例                                                      |
+|:-------------------------------|:---------------------------|:--------------------------------------------------------|
+| `isPrimitiveType(Class<?>...)` | 判断传入的**类**是否均为基本类型的包装类。    | `Integer.class` -> `true`<br/>`String.class` -> `false` |
+| `isPrimitiveType(Object...)`   | 判断传入的**对象**是否均为基本类型的包装类实例。 | `1` (Integer) -> `true`<br/>`"abc"` -> `false`          |
 
 **示例代码**:
 

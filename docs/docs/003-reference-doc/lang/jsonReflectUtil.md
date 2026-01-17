@@ -22,9 +22,9 @@
 
 尝试解包 JSON 元素对象，提取其底层的 Java 原生对象（如 `String`, `BigDecimal`, `Integer` 等）。
 
-| 方法名 | 描述 | 支持的源类型 |
-| :--- | :--- | :--- |
-| `getValue(Object obj)` | 检查传入对象是否为已知的 JSON 包装类，如果是则提取值；否则原样返回。 | `com.google.gson.JsonPrimitive`<br>`com.fasterxml.jackson.databind.node.ValueNode` |
+| 方法名                    | 描述                                    | 支持的源类型                                                                              |
+|:-----------------------|:--------------------------------------|:------------------------------------------------------------------------------------|
+| `getValue(Object obj)` | 检查传入对象是否为已知的 JSON 包装类，如果是则提取值；否则原样返回。 | `com.google.gson.JsonPrimitive`<br/>`com.fasterxml.jackson.databind.node.ValueNode` |
 
 **示例代码**:
 

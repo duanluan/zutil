@@ -20,14 +20,14 @@
 
 增强了 Commons Lang3 的校验能力，直接接受 `Object` 类型，省去了调用 `toString()` 的步骤。
 
-| 方法名 | 描述 |
-| :--- | :--- |
-| `isEmpty(Object)` | 判断对象是否为 `null` 或 `toString()` 后长度为 0。 |
-| `isNotEmpty(Object)` | 判断对象是否**不**为 `null` 且长度大于 0。 |
-| `isAnyEmpty(Object...)` | 判断数组中是否**任意一个**对象为空。 |
-| `isBlank(Object)` | 判断对象是否为 `null`、空字符串或仅包含空白字符。 |
-| `isNotBlank(Object)` | 判断对象是否**不**为 `null`、空字符串且不全为空白字符。 |
-| `isAnyBlank(Object...)` | 判断数组中是否**任意一个**对象为空白。 |
+| 方法名                     | 描述                                    |
+|:------------------------|:--------------------------------------|
+| `isEmpty(Object)`       | 判断对象是否为 `null` 或 `toString()` 后长度为 0。 |
+| `isNotEmpty(Object)`    | 判断对象是否**不**为 `null` 且长度大于 0。          |
+| `isAnyEmpty(Object...)` | 判断数组中是否**任意一个**对象为空。                  |
+| `isBlank(Object)`       | 判断对象是否为 `null`、空字符串或仅包含空白字符。          |
+| `isNotBlank(Object)`    | 判断对象是否**不**为 `null`、空字符串且不全为空白字符。     |
+| `isAnyBlank(Object...)` | 判断数组中是否**任意一个**对象为空白。                 |
 
 **示例代码**:
 
@@ -43,11 +43,11 @@ StrUtil.isBlank("   ");      // -> true
 
 提供了忽略大小写的前后缀移除功能。
 
-| 方法名 | 描述 |
-| :--- | :--- |
+| 方法名                                  | 描述                 |
+|:-------------------------------------|:-------------------|
 | `removeStartIgnoreCase(str, remove)` | 移除字符串开头的子串（忽略大小写）。 |
-| `removeEndIgnoreCase(str, remove)` | 移除字符串结尾的子串（忽略大小写）。 |
-| `nCopies(source, n)` | 将字符串重复 `n` 次。 |
+| `removeEndIgnoreCase(str, remove)`   | 移除字符串结尾的子串（忽略大小写）。 |
+| `nCopies(source, n)`                 | 将字符串重复 `n` 次。      |
 
 **注意**：`remove...` 方法在输入字符串或移除内容为 Blank 时会抛出 `IllegalArgumentException`。
 
@@ -63,8 +63,8 @@ StrUtil.nCopies("Abc", 3);
 
 提供简便的占位符替换功能，类似于 SLF4J 的日志格式化。
 
-| 方法名 | 描述 |
-| :--- | :--- |
+| 方法名                    | 描述                    |
+|:-----------------------|:----------------------|
 | `format(str, vals...)` | 将字符串中的 `{}` 依次替换为参数值。 |
 
 ```java
@@ -77,10 +77,10 @@ StrUtil.format("User：{}, Age：{}", "Tom", "18");
 
 ### 4. 命名与大小写转换 (Case Conversion)
 
-| 方法名 | 描述 | 示例 |
-| :--- | :--- | :--- |
-| `toUnderscore(String)` | 驼峰转下划线（Snake Case）。 | `UserAge` -> `user_age` |
-| `toInitialUpperCase(String)` | 首字母大写。 | `apple` -> `Apple` |
+| 方法名                          | 描述                  | 示例                      |
+|:-----------------------------|:--------------------|:------------------------|
+| `toUnderscore(String)`       | 驼峰转下划线（Snake Case）。 | `UserAge` -> `user_age` |
+| `toInitialUpperCase(String)` | 首字母大写。              | `apple` -> `Apple`      |
 
 ```java
 StrUtil.toUnderscore("HelloWorld"); // -> "hello_world"
@@ -88,8 +88,8 @@ StrUtil.toUnderscore("HelloWorld"); // -> "hello_world"
 
 ### 5. 查找 (Search)
 
-| 方法名 | 描述 |
-| :--- | :--- |
+| 方法名                       | 描述                                           |
+|:--------------------------|:---------------------------------------------|
 | `indexOf(seq, searchSeq)` | 查找子串位置。针对 2 字符长度的查找进行了性能优化（代理给 `ArrayUtil`）。 |
 
 ## ⚠️ 注意事项

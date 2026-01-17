@@ -20,23 +20,23 @@
 
 直接复用了 Commons Collections 的成熟能力，提供类型安全的获取方法和集合操作。
 
-| 方法名 | 描述 |
-| :--- | :--- |
-| `isEmpty(Map)` | 判断 Map 是否为 null 或空。 |
-| `isNotEmpty(Map)` | 判断 Map 是否不为 null 且非空。 |
-| `getString(Map, key, [default])` | 获取 String 类型的值。 |
-| `getInteger`, `getLong`, ... | 获取各种基本数据类型的值。 |
-| `safeAddToMap(Map, key, value)` | 安全添加（避免空指针）。 |
-| `toProperties(Map)` | 转为 Properties 对象。 |
-| `invertMap(Map)` | Key-Value 反转。 |
+| 方法名                              | 描述                    |
+|:---------------------------------|:----------------------|
+| `isEmpty(Map)`                   | 判断 Map 是否为 null 或空。   |
+| `isNotEmpty(Map)`                | 判断 Map 是否不为 null 且非空。 |
+| `getString(Map, key, [default])` | 获取 String 类型的值。       |
+| `getInteger`, `getLong`, ...     | 获取各种基本数据类型的值。         |
+| `safeAddToMap(Map, key, value)`  | 安全添加（避免空指针）。          |
+| `toProperties(Map)`              | 转为 Properties 对象。     |
+| `invertMap(Map)`                 | Key-Value 反转。         |
 
 ### 2. Key 存在性探测 (Key Existence)
 
 用于在不知道具体哪个 Key 有效时，探测存在的 Key。
 
-| 方法名 | 描述 |
-| :--- | :--- |
-| `containsKeys(Map, keys...)` | 返回 Map 中**实际存在**的所有 Key 的列表。 |
+| 方法名                               | 描述                               |
+|:----------------------------------|:---------------------------------|
+| `containsKeys(Map, keys...)`      | 返回 Map 中**实际存在**的所有 Key 的列表。     |
 | `containsKeysFirst(Map, keys...)` | 返回 Key 数组中**第一个在 Map 中存在**的 Key。 |
 
 ```java
@@ -57,11 +57,11 @@ String firstKey = MapUtil.containsKeysFirst(map, "nickname", "name", "id");
 
 根据一组 Key 批量提取 Value，常用于数据清洗或 DTO 转换。
 
-| 方法名 | 描述 |
-| :--- | :--- |
-| `getAll(Map, keys...)` | 获取存在的 Key 对应的 Value 列表（忽略不存在的 Key）。 |
+| 方法名                               | 描述                                                  |
+|:----------------------------------|:----------------------------------------------------|
+| `getAll(Map, keys...)`            | 获取存在的 Key 对应的 Value 列表（忽略不存在的 Key）。                 |
 | `getAll(Map, isAddNull, keys...)` | 获取 Value 列表。`isAddNull=true` 时，若 Key 不存在则填充 `null`。 |
-| `getAllNotNull(Map, keys...)` | 获取 Value 列表，**排除**值为 `null` 的项。 |
+| `getAllNotNull(Map, keys...)`     | 获取 Value 列表，**排除**值为 `null` 的项。                     |
 
 ```java
 Map<String, String> map = new HashMap<>();
@@ -86,10 +86,10 @@ List<String> list3 = MapUtil.getAllNotNull(map, "a", "b", "c");
 
 按顺序查找，一旦找到符合条件的值立即返回。适用于“降级策略”或“多字段选一”场景。
 
-| 方法名 | 描述 |
-| :--- | :--- |
-| `getAny(Map, keys...)` | 返回**第一个存在 Key** 的 Value（即使 Value 是 null 也返回）。 |
-| `getAnyNotNull(Map, keys...)` | 返回**第一个 Value 不为 null** 的值。 |
+| 方法名                           | 描述                                            |
+|:------------------------------|:----------------------------------------------|
+| `getAny(Map, keys...)`        | 返回**第一个存在 Key** 的 Value（即使 Value 是 null 也返回）。 |
+| `getAnyNotNull(Map, keys...)` | 返回**第一个 Value 不为 null** 的值。                   |
 
 ```java
 Map<String, String> config = new HashMap<>();

@@ -15,15 +15,15 @@
 
 ## 🚀 常量概览
 
-| 常量名 | 描述 | 对应 JDK 常量 / 定义 |
-| :--- | :--- | :--- |
-| `UTF_8` | UTF-8 编码 | `StandardCharsets.UTF_8` |
-| `US_ASCII` | 7位 ASCII 字符集 | `StandardCharsets.US_ASCII` |
-| `ISO_8859_1` | ISO Latin Alphabet No. 1 | `StandardCharsets.ISO_8859_1` |
-| `UTF_16` | UTF-16 编码 (带 BOM) | `StandardCharsets.UTF_16` |
-| `UTF_16BE` | UTF-16 Big Endian (大端序) | `StandardCharsets.UTF_16BE` |
-| `UTF_16LE` | UTF-16 Little Endian (小端序) | `StandardCharsets.UTF_16LE` |
-| `GB2312` | GB2312 简体中文字符集 | `Charset.forName("GB2312")` |
+| 常量名          | 描述                         | 对应 JDK 常量 / 定义                |
+|:-------------|:---------------------------|:------------------------------|
+| `UTF_8`      | UTF-8 编码                   | `StandardCharsets.UTF_8`      |
+| `US_ASCII`   | 7位 ASCII 字符集               | `StandardCharsets.US_ASCII`   |
+| `ISO_8859_1` | ISO Latin Alphabet No. 1   | `StandardCharsets.ISO_8859_1` |
+| `UTF_16`     | UTF-16 编码 (带 BOM)          | `StandardCharsets.UTF_16`     |
+| `UTF_16BE`   | UTF-16 Big Endian (大端序)    | `StandardCharsets.UTF_16BE`   |
+| `UTF_16LE`   | UTF-16 Little Endian (小端序) | `StandardCharsets.UTF_16LE`   |
+| `GB2312`     | GB2312 简体中文字符集             | `Charset.forName("GB2312")`   |
 
 ## 💡 使用示例
 
