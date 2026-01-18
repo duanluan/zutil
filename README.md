@@ -40,7 +40,7 @@ For performance comparison with Hutool, see [jmh.comparison](zutil-all/src/test/
 <dependency>
   <groupId>top.csaf</groupId>
   <artifactId>zutil-all</artifactId>
-  <version>2.0.0-beta1</version>
+  <version>2.0.0-beta2</version>
 </dependency>
 ```
 
@@ -48,9 +48,9 @@ For performance comparison with Hutool, see [jmh.comparison](zutil-all/src/test/
 
 ```groovy
 // groovy
-implementation 'top.csaf:zutil-all:2.0.0-beta1'
+implementation 'top.csaf:zutil-all:2.0.0-beta2'
 // kotlin
-implementation("top.csaf:zutil-all:2.0.0-beta1")
+implementation("top.csaf:zutil-all:2.0.0-beta2")
 ```
 
 ### Notes on Installation
@@ -64,7 +64,7 @@ This library includes `slf4j-api` and `slf4j-simple`, which conflict with `sprin
 <dependency>
   <groupId>top.csaf</groupId>
   <artifactId>zutil-all</artifactId>
-   <version>2.0.0-beta1</version>
+   <version>2.0.0-beta2</version>
   <exclusions>
     <exclusion>
       <groupId>org.slf4j</groupId>
@@ -98,7 +98,7 @@ Reference: [Excluding transitive dependencies - Gradle User Manual](https://docs
 // groovy
 dependencies {
   // Option 1: Exclude slf4j from ZUtil
-  implementation('top.csaf:zutil-all:2.0.0-beta1') {
+  implementation('top.csaf:zutil-all:2.0.0-beta2') {
     exclude group: 'org.slf4j', module: 'slf4j-api'
     exclude group: 'org.slf4j', module: 'slf4j-simple'
   }
@@ -111,7 +111,7 @@ dependencies {
 // kotlin
 dependencies {
   // Option 1: Exclude slf4j from ZUtil
-  implementation("top.csaf:zutil-all:2.0.0-beta1") {
+  implementation("top.csaf:zutil-all:2.0.0-beta2") {
     exclude(group = "org.slf4j", module = "slf4j-api")
     exclude(group = "org.slf4j", module = "slf4j-simple")
   }
