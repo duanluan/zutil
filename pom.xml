@@ -86,6 +86,7 @@
     <transmittable.thread.local.version>2.14.5</transmittable.thread.local.version>
     <ulid.creator.version>5.2.3</ulid.creator.version>
     <uuid.creator.version>6.1.1</uuid.creator.version>
+    <ip2region.version>2.7.0</ip2region.version>
 
     <junit.version>6.1.0-M1</junit.version>
     <junit.platform.version>6.1.0-M1</junit.platform.version>
@@ -236,6 +237,11 @@
         <groupId>com.github.f4b6a3</groupId>
         <artifactId>uuid-creator</artifactId>
         <version>${uuid.creator.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.lionsoul</groupId>
+        <artifactId>ip2region</artifactId>
+        <version>${ip2region.version}</version>
       </dependency>
 
 
