@@ -189,7 +189,7 @@ Mode (`org.openjdk.jmh.annotations.Mode`):
         }
       }
       ```
-    - Navigate to the **project root directory**, then run the following command to test (using `Reactor` to build dependencies automatically):`mvn test -pl <module-name> -am -Dtest=<TestClassName> -Dsurefire.failIfNoSpecifiedTests=false`(e.g., `mvn test -pl zutil-all -am -Dtest=NanoIdUtilTest -Dsurefire.failIfNoSpecifiedTests=false`).
+    - Navigate to the **project root directory**, then run the following command to test (using `Reactor` to build dependencies automatically):`mvn test -pl <module-name> -am -Dtest=<TestClassName> "-Dsurefire.failIfNoSpecifiedTests=false"`(e.g., `mvn test -pl zutil-all -am -Dtest=NanoIdUtilTest "-Dsurefire.failIfNoSpecifiedTests=false"`).
     - Run `mvn jacoco:report` to generate the code coverage report in the `target/site` directory.
     - Ensure coverage of updated classes or methods is above **90%** before submitting.
     - Parameter validation using `lombok.NonNull` can be ignored.
