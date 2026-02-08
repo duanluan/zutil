@@ -10,98 +10,15 @@ import top.csaf.http.constant.HeaderConst;
 import top.csaf.http.constant.ReqMethodConst;
 import top.csaf.http.convert.AutoJsonMsgConvertor;
 import top.csaf.lang.StrUtil;
-import top.csaf.regex.RegExUtil;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * HTTP 工具类
  */
 @Slf4j
 public class HttpUtil extends cn.zhxu.okhttps.HttpUtils {
-
-  /**
-   * 键值对参数转换为 URL 参数
-   *
-   * @param prefix 前缀，一般是“?”
-   * @param params 参数
-   * @return URL 参数
-   */
-  public static String toUrlParams(CharSequence prefix, final Map<String, Object> params) {
-    if (prefix == null) {
-      prefix = "?";
-    }
-    if (MapUtil.isEmpty(params)) {
-      return prefix.toString();
-    }
-    Set<Map.Entry<String, Object>> entrySet = params.entrySet();
-    StringBuilder result = new StringBuilder();
-    Map.Entry<String, Object> firstEntry = null;
-    for (Map.Entry<String, Object> entry : entrySet) {
-      firstEntry = entry;
-      result.append(entry.getKey()).append("=").append(entry.getValue());
-      break;
-    }
-    entrySet.remove(firstEntry);
-    for (Map.Entry<String, Object> entry : entrySet) {
-      result.append("&").append(entry.getKey()).append("=").append(entry.getValue());
-    }
-    return prefix.toString() + result;
-  }
-
-  /**
-   * 键值对参数转换为 URL 参数，含前缀“?”
-   *
-   * @param params 参数
-   * @return URL 参数
-   */
-  public static String toUrlParams(final Map<String, Object> params) {
-    return toUrlParams("?", params);
-  }
-
-  /**
-   * URL 参数转换为 Map 参数
-   *
-   * @param prefix 前缀，一般是“?”
-   * @param url    URL
-   * @return Map 参数
-   */
-  public static Map<String, String> toMapParams(CharSequence prefix, CharSequence url) {
-    if (prefix == null) {
-      prefix = "?";
-    }
-    if (StrUtil.isBlank(url)) {
-      throw new IllegalArgumentException("Url: must not be blank");
-    }
-    String[] split = url.toString().split(RegExUtil.replaceAllSpecialChar(prefix));
-    if (split.length < 2) {
-      throw new IllegalArgumentException("Url: must contain '" + prefix + "' or no parameters after the '" + prefix + "'");
-    }
-    String[] params = split[1].split("&");
-    Map<String, String> map = new HashMap<>(params.length);
-    for (String param : params) {
-      String[] split1 = param.split("=");
-      if (split1.length == 2) {
-        map.put(split1[0], split1[1]);
-      } else {
-        map.put(split1[0], "");
-      }
-    }
-    return map;
-  }
-
-  /**
-   * URL 参数转换为 Map 参数，默认前缀“?”
-   *
-   * @param url URL
-   * @return Map 参数
-   */
-  public static Map<String, String> toMapParams(final CharSequence url) {
-    return toMapParams("?", url);
-  }
 
   /**
    * 获取请求参数长度

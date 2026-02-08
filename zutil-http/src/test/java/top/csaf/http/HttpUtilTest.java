@@ -46,32 +46,6 @@ class HttpUtilTest {
     server.shutdown();
   }
 
-  // ... (静态方法测试: testToUrlParams, testToMapParams 保持不变，此处省略以节省篇幅) ...
-  @Test
-  @DisplayName("静态方法: toUrlParams")
-  void testToUrlParams() {
-    Map<String, Object> params = new HashMap<>();
-    params.put("name", "zhangsan");
-    params.put("age", 18);
-    String result = HttpUtil.toUrlParams("?", params);
-    assertTrue(result.startsWith("?"));
-    assertTrue(result.contains("name=zhangsan"));
-    assertEquals("?", HttpUtil.toUrlParams("?", null));
-    assertTrue(HttpUtil.toUrlParams(params).startsWith("?"));
-  }
-
-  @Test
-  @DisplayName("静态方法: toMapParams")
-  void testToMapParams() {
-    String url = "http://localhost?name=zhangsan&empty=";
-    Map<String, String> map = HttpUtil.toMapParams("?", url);
-    assertEquals("zhangsan", map.get("name"));
-    assertEquals("", map.get("empty"));
-    assertThrows(IllegalArgumentException.class, () -> HttpUtil.toMapParams("?", ""));
-    assertThrows(IllegalArgumentException.class, () -> HttpUtil.toMapParams("?", "no-params"));
-    assertEquals("zhangsan", HttpUtil.toMapParams(url).get("name"));
-  }
-
   @Test
   @DisplayName("工具方法: getContentLength")
   void testGetContentLength() {

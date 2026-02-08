@@ -1,6 +1,7 @@
 # 不兼容变更
-
-* 2.0.0
+* 2.0.0-beta4
+  * `HttpUtil`删除`toUrlParams`、`toMapParams`方法。
+* 2.0.0-beta2
   * `ContentTypeConst`、`HeaderConst`、`ReqMethodConst`移至`http.constant`包下。
   * `NanoIdUtil`等 ID 工具类移至`id`包下。
 * 2.0.0-alpha5
@@ -11,7 +12,7 @@
 * 1.14.1
   * 删除`crypto.SecurityUtil`。
 * 1.14.0
-  * `RegExUtils` 删除有 Pattern 形参的方法。
+  * `RegExUtils`删除有 Pattern 形参的方法。
   * 所有类名含`Utils`的重命名为`Util`，含`String`的重命名为`Str`，含`Collection`的重命名为`Coll`，含`Feature`的重命名为`Feat`，含`Constant`的重命名为`Const`，含`Property`的重命名为`Prop`，含`Function`的重命名为`Func`。
   * `date.constant.DateRegexPattern`重命名为`DateRegExPattern`。
   * `ArrayUtil`、`ClassUtil`、`NumberUtil`、`ObjUtil`、`RandomStrUtil`、`RandomUtil`、`StrUtil`、`SysUtil`移至`lang`包下，`CollUtil`、`MapUtil`移至`coll`包下，`JsonUtil`移至`json`包下，`XmlUtil`移至`xml`包下，`PropFunc`移至`bean`包下。
