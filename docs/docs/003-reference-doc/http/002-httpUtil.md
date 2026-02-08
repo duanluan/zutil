@@ -22,15 +22,15 @@
 
 ```java
 // 1. 最简单的请求，返回 String
-String html = HttpUtil.get("[https://example.com](https://example.com)");
+String html = HttpUtil.get("https://example.com");
 
 // 2. 带参数，返回 Fastjson2 JSONObject
 Map<String, Object> params = new HashMap<>();
 params.put("keyword", "java");
-JSONObject json = HttpUtil.get("[https://api.example.com/search](https://api.example.com/search)", params, JSONObject.class);
+JSONObject json = HttpUtil.get("https://api.example.com/search", params, JSONObject.class);
 
 // 3. 返回 POJO 对象
-User user = HttpUtil.get("[https://api.example.com/user/1](https://api.example.com/user/1)", User.class);
+User user = HttpUtil.get("https://api.example.com/user/1", User.class);
 ```
 
 ### 2. 发起 POST 请求
@@ -39,10 +39,10 @@ User user = HttpUtil.get("[https://api.example.com/user/1](https://api.example.c
 // 1. 提交 JSON 数据 (Content-Type 默认为 application/json 或由 OkHttps 决定)
 Map<String, Object> body = new HashMap<>();
 body.put("username", "admin");
-HttpResult result = HttpUtil.post("[https://api.example.com/login](https://api.example.com/login)", body);
+HttpResult result = HttpUtil.post("https://api.example.com/login", body);
 
 // 2. 指定 Content-Type
-HttpUtil.post("[https://api.example.com/upload](https://api.example.com/upload)", "multipart/form-data", params);
+HttpUtil.post("https://api.example.com/upload", "multipart/form-data", params);
 ```
 
 ### 3. 自定义 Header
@@ -52,7 +52,7 @@ Map<String, String> headers = new HashMap<>();
 headers.put("Authorization", "Bearer token123");
 
 // 使用 getByHeader / postByHeader 等系列方法
-String response = HttpUtil.getByHeader("[https://api.example.com/secure](https://api.example.com/secure)", headers, String.class);
+String response = HttpUtil.getByHeader("https://api.example.com/secure", headers, String.class);
 ```
 
 ## 📚 API 详解

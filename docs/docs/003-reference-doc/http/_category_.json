@@ -2,6 +2,6 @@
   "label": "HTTP 请求",
   "link": {
     "type": "generated-index",
-    "description": "轻量级 HTTP 请求工具类与常量定义模块，基于 OkHttps 封装。"
+    "description": "轻量级 HTTP 请求与 IP 工具类（含常量、HttpUtil、IpUtil），基于 OkHttps、ip2region 封装。"
   }
 }
