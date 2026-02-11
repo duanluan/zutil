@@ -73,7 +73,9 @@
     <commons.text.version>1.15.0</commons.text.version>
     <commons.collections.version>4.5.0</commons.collections.version>
     <commons.io.version>2.21.0</commons.io.version>
+    <commons.compress.version>1.26.1</commons.compress.version>
     <commons.beanutils.version>1.11.0</commons.beanutils.version>
+    <xz.version>1.10</xz.version>
     <okhttps.version>4.1.0</okhttps.version>
     <okio.version>3.16.4</okio.version>
     <spring.beans.version>7.0.2</spring.beans.version>
@@ -163,9 +165,19 @@
         <version>${commons.io.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>${commons.compress.version}</version>
+      </dependency>
+      <dependency>
         <groupId>commons-beanutils</groupId>
         <artifactId>commons-beanutils</artifactId>
         <version>${commons.beanutils.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.tukaani</groupId>
+        <artifactId>xz</artifactId>
+        <version>${xz.version}</version>
       </dependency>
       <dependency>
         <groupId>cn.zhxu</groupId>
