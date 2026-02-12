@@ -1,5 +1,7 @@
 package top.csaf.junit;
 
+import com.github.junrar.Archive;
+import com.github.junrar.rarfile.FileHeader;
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -29,10 +31,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.zip.Deflater;
@@ -44,6 +49,18 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @DisplayName("CompressUtil tests")
 class CompressUtilTest {
+
+  /**
+   * 测试用 RAR 样本（包含 foo/bar.txt -> "baz"）。
+   */
+  private static final String RAR_SAMPLE_BASE64 =
+    "UmFyIRoHAM+QcwAADQAAAAAAAAB8zXQgkC0ADQAAAAQAAAAD4Tl7zCeTJEEdMwsAtIEAAGZvb1xiYXIudHh0AMAACL8IrvLDGH6f/ZLdiiN04IAjAAAAAAAAAAAAAwAAAAAnkyRBFDADAP1BAABmb2/EPXsAQAcA";
+
+  /**
+   * 测试用加密 RAR 样本（无密码时解压失败）。
+   */
+  private static final String RAR_PASSWORD_BASE64 =
+    "UmFyIRoHAM+QcwAADQAAAAAAAADqWnQklDMAIAAAAAYAAAADBPcp4veq81AdMwkApIEAAGZpbGUxLnR4dFioM3YCpGjgAMAsmDgcSsnwnUn6kzM4BlpBbF+uQO0D7ORxNIz3Z4nsScQ9ewBABwA=";
 
   /**
    * JUnit 提供的临时目录，测试过程中的文件都落在这里。
@@ -141,6 +158,7 @@ class CompressUtilTest {
     assertEquals(Format.TAR, CompressUtil.detectFormat(Paths.get("a.tar")));
     assertEquals(Format.ZIP, CompressUtil.detectFormat(Paths.get("a.zip")));
     assertEquals(Format.SEVEN_Z, CompressUtil.detectFormat(Paths.get("a.7z")));
+    assertEquals(Format.RAR, CompressUtil.detectFormat(Paths.get("a.rar")));
     assertEquals(Format.GZ, CompressUtil.detectFormat(Paths.get("a.gz")));
     assertEquals(Format.BZ2, CompressUtil.detectFormat(Paths.get("a.bz2")));
     assertEquals(Format.XZ, CompressUtil.detectFormat(Paths.get("a.xz")));
@@ -344,6 +362,138 @@ class CompressUtilTest {
   }
 
   /**
+   * RAR 解压验证。
+   */
+  @Test
+  @DisplayName("RAR decompression")
+  void testDecompressRar() throws Exception {
+    // 写入样本 RAR 文件
+    Path rar = tempDir.resolve("sample.rar");
+    writeBinary(rar, Base64.getDecoder().decode(RAR_SAMPLE_BASE64));
+
+    // 解压到目标目录并校验内容
+    Path outDir = tempDir.resolve("rar-out");
+    CompressOptions options = CompressOptions.builder().preserveLastModified(false).build();
+    CompressUtil.decompress(rar, outDir, options);
+    // 样本文件末尾可能包含换行，使用 trim 规避平台差异
+    assertEquals("baz", readText(outDir.resolve("foo/bar.txt")).trim());
+  }
+
+  /**
+   * RAR 加密条目解压失败分支覆盖。
+   */
+  @Test
+  @DisplayName("RAR password protected throws")
+  void testDecompressRarPasswordProtectedThrows() throws Exception {
+    // 写入加密 RAR 文件
+    Path rar = tempDir.resolve("password.rar");
+    writeBinary(rar, Base64.getDecoder().decode(RAR_PASSWORD_BASE64));
+
+    // 无密码解压应失败，覆盖 RarException 透传分支
+    RuntimeException thrown = assertThrows(RuntimeException.class,
+      () -> CompressUtil.decompress(rar, tempDir.resolve("rar-password-out")));
+    assertNotNull(thrown.getCause());
+  }
+
+  /**
+   * 覆盖 RAR 条目处理与 TrackingOutputStream 分支。
+   */
+  @Test
+  @DisplayName("RAR entry processing and tracking stream")
+  void testDecompressRarEntryProcessingCoverage() throws Exception {
+    // 写入样本 RAR 文件
+    Path rar = tempDir.resolve("entries.rar");
+    writeBinary(rar, Base64.getDecoder().decode(RAR_SAMPLE_BASE64));
+
+    // 读取条目头并选取一个文件条目
+    List<FileHeader> headers = readRarHeaders(rar);
+    assertTrue(headers.size() >= 2);
+    FileHeader fileHeader = null;
+    FileHeader otherHeader = null;
+    for (FileHeader header : headers) {
+      if (fileHeader == null && !header.isDirectory()) {
+        fileHeader = header;
+        continue;
+      }
+      if (otherHeader == null && header != fileHeader) {
+        otherHeader = header;
+      }
+    }
+    assertNotNull(fileHeader);
+    assertNotNull(otherHeader);
+
+    // 记录文件条目名称，后续用于校验输出路径
+    String fileEntryName = fileHeader.getFileName();
+    assertNotNull(fileEntryName);
+    assertFalse(fileEntryName.isEmpty());
+
+    // 将备用条目设置为空名，触发跳过分支
+    otherHeader.setFileName("");
+    otherHeader.setFileNameW("");
+    assertTrue(otherHeader.getFileName() == null || otherHeader.getFileName().isEmpty());
+
+    // 清空最后修改时间，覆盖 lastModified 为 null 的分支
+    fileHeader.setLastModifiedTime(null);
+    assertNull(fileHeader.getLastModifiedTime());
+
+    // 组合条目列表并准备解压器与追踪器
+    List<FileHeader> testHeaders = new ArrayList<>();
+    testHeaders.add(otherHeader);
+    testHeaders.add(fileHeader);
+    Class<?> extractorClass = Class.forName("top.csaf.io.CompressUtil$RarEntryExtractor");
+    Class<?> trackerClass = Class.forName("top.csaf.io.CompressUtil$ExtractTracker");
+    Object extractor = newRarExtractorProxy(extractorClass);
+    Object tracker = newExtractTracker(10L, 100L, 100L);
+
+    // 通过反射调用条目处理方法
+    Path outDir = tempDir.resolve("rar-entries-out");
+    invokePrivateVoid("decompressRarEntries",
+      new Class<?>[]{List.class, extractorClass, Path.class, CompressOptions.class, trackerClass},
+      testHeaders, extractor, outDir, new CompressOptions(), tracker);
+
+    // 校验输出文件已写入
+    Path expected = outDir.resolve(fileEntryName.replace('\\', '/'));
+    assertTrue(Files.exists(expected));
+    assertTrue(Files.size(expected) > 0);
+  }
+
+  /**
+   * 覆盖 parent 为 null 的分支。
+   */
+  @Test
+  @DisplayName("RAR entry parent null branch")
+  void testDecompressRarEntryParentNull() throws Exception {
+    // 写入样本 RAR 文件
+    Path rar = tempDir.resolve("parent-null.rar");
+    writeBinary(rar, Base64.getDecoder().decode(RAR_SAMPLE_BASE64));
+
+    // 读取文件条目并构造根路径输出
+    List<FileHeader> headers = readRarHeaders(rar);
+    FileHeader fileHeader = null;
+    for (FileHeader header : headers) {
+      if (!header.isDirectory()) {
+        fileHeader = header;
+        break;
+      }
+    }
+    assertNotNull(fileHeader);
+    // 使用 "." 让解析路径落到根目录，触发 parent 为空分支
+    fileHeader.setFileName(".");
+    fileHeader.setFileNameW("");
+    // 固定变量用于 lambda 调用
+    final FileHeader targetHeader = fileHeader;
+
+    // 通过反射调用条目处理方法，期望抛出 IO 异常
+    Class<?> extractorClass = Class.forName("top.csaf.io.CompressUtil$RarEntryExtractor");
+    Class<?> trackerClass = Class.forName("top.csaf.io.CompressUtil$ExtractTracker");
+    Object extractor = newRarExtractorFailProxy(extractorClass);
+    InvocationTargetException thrown = assertThrows(InvocationTargetException.class, () -> invokePrivateVoid("decompressRarEntries",
+      new Class<?>[]{List.class, extractorClass, Path.class, CompressOptions.class, trackerClass},
+      Collections.singletonList(targetHeader), extractor, tempDir.getRoot(), new CompressOptions(), null));
+    assertTrue(thrown.getCause() instanceof IOException);
+  }
+
+  /**
    * 参数异常、覆盖策略、路径安全与解压限额校验。
    */
   @Test
@@ -420,6 +570,13 @@ class CompressUtilTest {
     CompressOptions maxTotalSize = CompressOptions.builder().maxTotalSize(5).build();
     assertThrows(IllegalArgumentException.class,
       () -> CompressUtil.decompress(limitsZip, tempDir.resolve("max-total-size"), maxTotalSize));
+
+    // RAR 单条目大小限制
+    Path rarLimit = tempDir.resolve("limit.rar");
+    writeBinary(rarLimit, Base64.getDecoder().decode(RAR_SAMPLE_BASE64));
+    CompressOptions rarMaxEntrySize = CompressOptions.builder().maxEntrySize(1).build();
+    assertThrows(IllegalArgumentException.class,
+      () -> CompressUtil.decompress(rarLimit, tempDir.resolve("rar-max-entry"), rarMaxEntrySize));
 
     // 禁止覆盖时解压应失败
     Path overwriteZip = tempDir.resolve("overwrite.zip");
@@ -785,6 +942,18 @@ class CompressUtilTest {
   }
 
   /**
+   * 写入二进制数据到指定路径。
+   */
+  private static void writeBinary(Path path, byte[] content) throws IOException {
+    // 保证父目录存在
+    Path parent = path.getParent();
+    if (parent != null) {
+      Files.createDirectories(parent);
+    }
+    Files.write(path, content);
+  }
+
+  /**
    * 读取 UTF-8 文本内容。
    */
   private static String readText(Path path) throws IOException {
@@ -849,6 +1018,51 @@ class CompressUtilTest {
       out.write(data);
       out.closeArchiveEntry();
     }
+  }
+
+  /**
+   * 读取 RAR 文件中的条目头列表。
+   */
+  private static List<FileHeader> readRarHeaders(Path rarPath) throws Exception {
+    try (Archive archive = new Archive(rarPath.toFile())) {
+      // 复制列表以避免资源关闭后访问问题
+      return new ArrayList<>(archive.getFileHeaders());
+    }
+  }
+
+  /**
+   * 创建 RAR 条目解压代理，写入少量数据以覆盖 TrackingOutputStream 分支。
+   */
+  private static Object newRarExtractorProxy(Class<?> extractorClass) {
+    return Proxy.newProxyInstance(extractorClass.getClassLoader(), new Class<?>[]{extractorClass},
+      (proxy, method, args) -> {
+        // 对输出流进行多种写入以覆盖不同分支
+        OutputStream out = (OutputStream) args[1];
+        out.write(1);
+        out.write(new byte[]{2, 3}, 0, 2);
+        out.write(new byte[0]);
+        out.flush();
+        return null;
+      });
+  }
+
+  /**
+   * 创建 RAR 条目解压代理，若被调用则抛出 AssertionError。
+   */
+  private static Object newRarExtractorFailProxy(Class<?> extractorClass) {
+    return Proxy.newProxyInstance(extractorClass.getClassLoader(), new Class<?>[]{extractorClass},
+      (proxy, method, args) -> {
+        // 不应触发解压逻辑
+        throw new AssertionError("RarEntryExtractor should not be called");
+      });
+  }
+
+  /**
+   * 通过反射创建 ExtractTracker 实例。
+   */
+  private static Object newExtractTracker(long maxEntries, long maxTotalSize, long maxEntrySize) throws Exception {
+    return newInnerInstance("top.csaf.io.CompressUtil$ExtractTracker",
+      new Class<?>[]{long.class, long.class, long.class}, maxEntries, maxTotalSize, maxEntrySize);
   }
 
   /**

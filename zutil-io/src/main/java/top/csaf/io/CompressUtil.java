@@ -1,6 +1,9 @@
 package top.csaf.io;
 
 import lombok.NonNull;
+import com.github.junrar.Archive;
+import com.github.junrar.exception.RarException;
+import com.github.junrar.rarfile.FileHeader;
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
@@ -60,7 +63,8 @@ public class CompressUtil {
     GZ, // 单文件 GZ
     BZ2, // 单文件 BZ2
     XZ, // 单文件 XZ
-    SEVEN_Z // 7z 归档
+    SEVEN_Z, // 7z 归档
+    RAR // RAR 归档
   }
 
   /**
@@ -179,6 +183,9 @@ public class CompressUtil {
       case SEVEN_Z:
         decompressSevenZ(source, targetDir, opts, tracker);
         break;
+      case RAR:
+        decompressRar(source, targetDir, opts, tracker);
+        break;
       default:
         throw new IllegalArgumentException("Unsupported archive format: " + format);
     }
@@ -220,6 +227,10 @@ public class CompressUtil {
     // 7z
     if (lower.endsWith(".7z")) {
       return Format.SEVEN_Z;
+    }
+    // rar 归档
+    if (lower.endsWith(".rar")) {
+      return Format.RAR;
     }
     // gz
     if (lower.endsWith(".gz")) {
@@ -590,6 +601,77 @@ public class CompressUtil {
   }
 
   /**
+   * RAR 解压实现。
+   */
+  private static void decompressRar(Path source, Path targetDir, CompressOptions options, ExtractTracker tracker) {
+    // 打开 RAR 文件读取
+    try (Archive archive = new Archive(source.toFile())) {
+      decompressRarEntries(archive.getFileHeaders(), (header, out) -> archive.extractFile(header, out),
+        targetDir, options, tracker);
+    } catch (IOException | RarException e) {
+      throw new RuntimeException("Decompress rar failed: " + source, e);
+    }
+  }
+
+  /**
+   * RAR 条目解压器。
+   */
+  @FunctionalInterface
+  private interface RarEntryExtractor {
+    /**
+     * 解压指定条目到输出流。
+     */
+    void extract(FileHeader header, OutputStream out) throws IOException, RarException;
+  }
+
+  /**
+   * 处理 RAR 条目列表，执行解压与路径校验。
+   */
+  private static void decompressRarEntries(List<FileHeader> headers, RarEntryExtractor extractor, Path targetDir,
+                                           CompressOptions options, ExtractTracker tracker) throws IOException, RarException {
+    Path normalizedTarget = targetDir.toAbsolutePath().normalize();
+    for (FileHeader header : headers) {
+      // 获取条目名称并统计条目数
+      String entryName = header.getFileName();
+      if (entryName == null || entryName.isEmpty()) {
+        continue;
+      }
+      if (tracker != null) {
+        tracker.onEntry(entryName);
+      }
+      // 解析条目路径并防止路径穿越
+      Path entryPath = resolveEntryPath(normalizedTarget, entryName, options);
+      if (header.isDirectory()) {
+        ensureDirectory(entryPath);
+        continue;
+      }
+      Path parent = entryPath.getParent();
+      if (parent != null) {
+        ensureDirectory(parent);
+      }
+      try (OutputStream fileOut = newOutputStream(entryPath, options);
+           OutputStream trackedOut = tracker == null ? fileOut : new TrackingOutputStream(fileOut, tracker)) {
+        // 输出解压内容并进行限额统计
+        try {
+          extractor.extract(header, trackedOut);
+        } catch (RarException e) {
+          // 透传限额异常，避免被包装为 RarException
+          Throwable cause = e.getCause();
+          if (cause instanceof IllegalArgumentException) {
+            throw (IllegalArgumentException) cause;
+          }
+          throw e;
+        }
+      }
+      // 读取并尝试恢复最后修改时间
+      FileTime lastModified = header.getLastModifiedTime();
+      if (lastModified != null) {
+        applyLastModified(entryPath, lastModified.toMillis(), options);
+      }
+    }
+  }
+
+  /**
    * 单文件解压实现（GZ/BZ2/XZ）。
    */
   private static void decompressSingle(Path source, Path targetDir, Format format, CompressOptions options, ExtractTracker tracker) {
@@ -946,6 +1028,62 @@ public class CompressUtil {
      * 写入文件条目。
      */
     void writeFile(Path file, String entryName) throws IOException;
+  }
+
+  /**
+   * 解压时统计输出大小的包装流，便于触发限额校验。
+   */
+  private static final class TrackingOutputStream extends OutputStream {
+    // 实际输出流
+    private final OutputStream delegate;
+    // 限额跟踪器
+    private final ExtractTracker tracker;
+    // 当前条目已写入大小
+    private long entrySize;
+
+    // 绑定输出流与追踪器
+    private TrackingOutputStream(OutputStream delegate, ExtractTracker tracker) {
+      this.delegate = delegate;
+      this.tracker = tracker;
+    }
+
+    @Override
+    public void write(int b) throws IOException {
+      // 单字节写入也要计入限额
+      onBytes(1);
+      delegate.write(b);
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
+      // 批量写入前先触发限额检查
+      onBytes(len);
+      delegate.write(b, off, len);
+    }
+
+    @Override
+    public void flush() throws IOException {
+      // 透传 flush
+      delegate.flush();
+    }
+
+    @Override
+    public void close() throws IOException {
+      // 透传 close
+      delegate.close();
+    }
+
+    /**
+     * 累计条目大小并触发限额校验。
+     */
+    private void onBytes(int len) {
+      if (len <= 0) {
+        return;
+      }
+      long nextSize = entrySize + len;
+      tracker.onBytes(len, nextSize);
+      entrySize = nextSize;
+    }
   }
 
   /**
