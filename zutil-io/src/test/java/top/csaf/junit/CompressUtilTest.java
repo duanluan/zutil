@@ -3,13 +3,19 @@ package top.csaf.junit;
 import com.github.junrar.Archive;
 import com.github.junrar.rarfile.FileHeader;
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
+import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipParameters;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.io.TempDir;
 import top.csaf.io.CompressOptions;
 import top.csaf.io.CompressUtil;
@@ -21,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -29,7 +34,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -163,12 +167,18 @@ class CompressUtilTest {
     assertEquals(Format.BZ2, CompressUtil.detectFormat(Paths.get("a.bz2")));
     assertEquals(Format.XZ, CompressUtil.detectFormat(Paths.get("a.xz")));
     assertNull(CompressUtil.detectFormat(Paths.get("a.unknown")));
+    // 根路径没有文件名，应该安全返回 null 而不是抛出 NPE
+    assertNull(CompressUtil.detectFormat(tempDir.getRoot()));
 
     // 单文件输出名解析：正常与兜底场景
     assertEquals("data", invokePrivate("resolveSingleOutputName",
       new Class<?>[]{String.class, Format.class}, "data.gz", Format.GZ));
     assertEquals("data.out", invokePrivate("resolveSingleOutputName",
       new Class<?>[]{String.class, Format.class}, "data", Format.GZ));
+    assertEquals(".gz.out", invokePrivate("resolveSingleOutputName",
+      new Class<?>[]{String.class, Format.class}, ".gz", Format.GZ));
+    assertEquals("..gz.out", invokePrivate("resolveSingleOutputName",
+      new Class<?>[]{String.class, Format.class}, "..gz", Format.GZ));
     assertEquals("data.out", invokePrivate("resolveSingleOutputName",
       new Class<?>[]{String.class, Format.class}, "data", Format.TAR));
   }
@@ -204,7 +214,13 @@ class CompressUtilTest {
   void testCompressZipIncludeRootAndSymlink() throws Exception {
     // 构造样例目录与软链接
     Path sourceDir = createSampleDir(tempDir.resolve("zip-src"));
-    Path link = Files.createSymbolicLink(sourceDir.resolve("link.txt"), sourceDir.resolve("a.txt"));
+    Path link;
+    try {
+      link = Files.createSymbolicLink(sourceDir.resolve("link.txt"), sourceDir.resolve("a.txt"));
+    } catch (IOException | UnsupportedOperationException | SecurityException e) {
+      Assumptions.assumeTrue(false, "Symlink is not supported in current environment: " + e.getMessage());
+      return;
+    }
     assertTrue(Files.isSymbolicLink(link));
 
     // 默认包含根目录压缩
@@ -332,6 +348,83 @@ class CompressUtilTest {
   }
 
   /**
+   * 单文件 GZ 压缩时，preserveLastModified 选项应控制头部时间戳写入。
+   */
+  @Test
+  @DisplayName("Single gzip compression respects preserveLastModified option")
+  void testSingleGzipPreserveLastModifiedOption() throws Exception {
+    Path sourceFile = tempDir.resolve("single-gzip.txt");
+    writeText(sourceFile, "single-gzip");
+    long sourceTime = 946_684_800_000L; // 2000-01-01T00:00:00Z
+    Files.setLastModifiedTime(sourceFile, FileTime.fromMillis(sourceTime));
+
+    Path preserveArchive = tempDir.resolve("single-gzip-preserve.gz");
+    CompressUtil.compress(sourceFile, preserveArchive, CompressOptions.builder().preserveLastModified(true).build());
+    Path preserveOut = tempDir.resolve("single-gzip-preserve-out");
+    CompressUtil.decompress(preserveArchive, preserveOut, CompressOptions.builder().preserveLastModified(true).build());
+    String preserveOutputName = preserveArchive.getFileName().toString().replaceFirst("(?i)\\.gz$", "");
+    long preservedTime = Files.getLastModifiedTime(preserveOut.resolve(preserveOutputName)).toMillis();
+    assertTrue(Math.abs(preservedTime - sourceTime) < 2000);
+
+    Path noPreserveArchive = tempDir.resolve("single-gzip-no-preserve.gz");
+    CompressUtil.compress(sourceFile, noPreserveArchive, CompressOptions.builder().preserveLastModified(false).build());
+    Path noPreserveOut = tempDir.resolve("single-gzip-no-preserve-out");
+    CompressUtil.decompress(noPreserveArchive, noPreserveOut, CompressOptions.builder().preserveLastModified(true).build());
+    String noPreserveOutputName = noPreserveArchive.getFileName().toString().replaceFirst("(?i)\\.gz$", "");
+    long noPreserveTime = Files.getLastModifiedTime(noPreserveOut.resolve(noPreserveOutputName)).toMillis();
+    assertTrue(Math.abs(noPreserveTime - sourceTime) > 86_400_000L);
+  }
+
+  /**
+   * GZ 元数据时间戳单位为秒，解压时应转换为毫秒写回文件系统。
+   */
+  @Test
+  @DisplayName("Gzip metadata time is converted from seconds to milliseconds")
+  void testGzipModificationTimeUnitConversion() throws Exception {
+    Path gzip = tempDir.resolve("unit.gz");
+    long modificationTimeSeconds = 1_700_000_000L;
+    createGzip(gzip, "unit".getBytes(StandardCharsets.UTF_8), modificationTimeSeconds);
+
+    Path outDir = tempDir.resolve("unit-out");
+    CompressOptions options = CompressOptions.builder().preserveLastModified(true).build();
+    CompressUtil.decompress(gzip, outDir, options);
+
+    Path extracted = outDir.resolve("unit");
+    long extractedTime = Files.getLastModifiedTime(extracted).toMillis();
+    assertTrue(Math.abs(extractedTime - modificationTimeSeconds * 1000L) < 2000);
+  }
+
+  /**
+   * 压缩时禁用保留时间戳后，归档文件条目不应携带源文件修改时间。
+   */
+  @Test
+  @DisplayName("Archive file entry mtime is not preserved when disabled")
+  void testArchiveFileTimestampNotPreservedWhenDisabled() throws Exception {
+    Path sourceFile = tempDir.resolve("mtime-off.txt");
+    writeText(sourceFile, "mtime-off");
+    long sourceTime = 946_684_800_000L; // 2000-01-01T00:00:00Z
+    Files.setLastModifiedTime(sourceFile, FileTime.fromMillis(sourceTime));
+
+    Map<Format, String> formats = new HashMap<>();
+    formats.put(Format.ZIP, "mtime-off.zip");
+    formats.put(Format.TAR, "mtime-off.tar");
+    formats.put(Format.SEVEN_Z, "mtime-off.7z");
+
+    CompressOptions compressOptions = CompressOptions.builder().preserveLastModified(false).build();
+    CompressOptions decompressOptions = CompressOptions.builder().preserveLastModified(true).build();
+    for (Map.Entry<Format, String> entry : formats.entrySet()) {
+      Path archive = tempDir.resolve(entry.getValue());
+      CompressUtil.compress(sourceFile, archive, compressOptions);
+      Path outDir = tempDir.resolve("mtime-off-out-" + entry.getKey().name().toLowerCase(Locale.ROOT));
+      CompressUtil.decompress(archive, outDir, decompressOptions);
+
+      Path extracted = outDir.resolve("mtime-off.txt");
+      long extractedTime = Files.getLastModifiedTime(extracted).toMillis();
+      assertTrue(Math.abs(extractedTime - sourceTime) > 86_400_000L);
+    }
+  }
+
+  /**
    * 7z 压缩/解压与时间戳保留验证。
    */
   @Test
@@ -359,6 +452,26 @@ class CompressUtilTest {
     CompressUtil.decompress(archivePreserve, outPreserve, preserve);
     Path extracted = outPreserve.resolve("seven-src/a.txt");
     assertTrue(Math.abs(Files.getLastModifiedTime(extracted).toMillis() - modTime.toMillis()) < 2000);
+  }
+
+  /**
+   * 7z 应正确处理 0 字节文件条目。
+   */
+  @Test
+  @DisplayName("7z empty file round trip")
+  void testCompressSevenZEmptyFile() throws Exception {
+    Path sourceDir = Files.createDirectories(tempDir.resolve("seven-empty-src"));
+    Path emptyFile = sourceDir.resolve("empty.txt");
+    Files.write(emptyFile, new byte[0]);
+
+    Path archive = tempDir.resolve("seven-empty.7z");
+    CompressUtil.compress(sourceDir, archive, CompressOptions.builder().includeRootDir(false).build());
+
+    Path outDir = tempDir.resolve("seven-empty-out");
+    CompressUtil.decompress(archive, outDir, new CompressOptions());
+    Path extracted = outDir.resolve("empty.txt");
+    assertTrue(Files.exists(extracted));
+    assertEquals(0L, Files.size(extracted));
   }
 
   /**
@@ -626,32 +739,20 @@ class CompressUtilTest {
   }
 
   /**
-   * 通过修改编译器生成的 switch 映射表覆盖 default 分支。
+   * 不支持的后缀应稳定抛出非法参数异常。
    */
   @Test
-  @DisplayName("Switch default branches via map tweak")
-  void testSwitchDefaultBranches() throws Exception {
-    // 准备一个可识别的 ZIP
+  @DisplayName("Unsupported extensions throw IllegalArgumentException")
+  void testUnsupportedExtensions() throws Exception {
     Path file = tempDir.resolve("switch.txt");
     writeText(file, "switch");
-    Path zip = tempDir.resolve("switch.zip");
-    CompressUtil.compress(file, zip);
+    assertThrows(IllegalArgumentException.class,
+      () -> CompressUtil.compress(file, tempDir.resolve("switch.unsupported")));
 
-    // 获取 switch 映射并强制落入 default 分支
-    int[] map = getSwitchMap();
-    int idx = Format.ZIP.ordinal();
-    int original = map[idx];
-    map[idx] = 0;
-    try {
-      // 压缩与解压均应走到 default 分支抛错
-      assertThrows(IllegalArgumentException.class,
-        () -> CompressUtil.compress(Collections.singletonList(file), zip));
-      assertThrows(IllegalArgumentException.class,
-        () -> CompressUtil.decompress(zip, tempDir.resolve("switch-out")));
-    } finally {
-      // 恢复原映射，避免影响其他测试
-      map[idx] = original;
-    }
+    Path badArchive = tempDir.resolve("switch.unsupported");
+    writeText(badArchive, "bad");
+    assertThrows(IllegalArgumentException.class,
+      () -> CompressUtil.decompress(badArchive, tempDir.resolve("switch-out")));
   }
 
   /**
@@ -722,47 +823,29 @@ class CompressUtilTest {
   }
 
   /**
-   * 通过内部 EntryWriter 覆盖目录名以 "/" 结尾的分支。
+   * 目录条目在归档中应保持 "/" 结尾，避免被当作普通文件。
    */
   @Test
-  @DisplayName("Entry writers keep trailing slash")
+  @DisplayName("Directory entries keep trailing slash")
   void testEntryNameEndsWithSlashInWriters() throws Exception {
-    // 准备目录与缓冲区
-    CompressOptions options = new CompressOptions();
-    Path dir = Files.createDirectories(tempDir.resolve("slash-dir"));
-    int bufferSize = 8;
-    byte[] buffer = new byte[bufferSize];
+    Path sourceDir = createSampleDir(tempDir.resolve("slash-src"));
+    CompressOptions options = CompressOptions.builder().includeRootDir(true).build();
 
-    // ZIP 写入器覆盖目录条目
-    ByteArrayOutputStream zipBytes = new ByteArrayOutputStream();
-    try (ZipArchiveOutputStream zipOut = new ZipArchiveOutputStream(zipBytes)) {
-      Object writer = newInnerInstance("top.csaf.io.CompressUtil$1",
-        new Class<?>[]{CompressOptions.class, ZipArchiveOutputStream.class, int.class, byte[].class},
-        options, zipOut, bufferSize, buffer);
-      invokeInstanceVoid(writer, "writeDirectory", new Class<?>[]{Path.class, String.class}, dir, "dir/");
-      zipOut.finish();
+    Path zip = tempDir.resolve("slash.zip");
+    CompressUtil.compress(sourceDir, zip, options);
+    try (ZipFile zipFile = ZipFile.builder().setPath(zip).setCharset(StandardCharsets.UTF_8).get()) {
+      ZipArchiveEntry rootDir = zipFile.getEntry("slash-src/");
+      assertNotNull(rootDir);
+      assertTrue(rootDir.isDirectory());
     }
 
-    // TAR 写入器覆盖目录条目
-    ByteArrayOutputStream tarBytes = new ByteArrayOutputStream();
-    try (TarArchiveOutputStream tarOut = new TarArchiveOutputStream(tarBytes)) {
-      Object writer = newInnerInstance("top.csaf.io.CompressUtil$2",
-        new Class<?>[]{CompressOptions.class, TarArchiveOutputStream.class, int.class, byte[].class},
-        options, tarOut, bufferSize, buffer);
-      invokeInstanceVoid(writer, "writeDirectory", new Class<?>[]{Path.class, String.class}, dir, "dir/");
-      tarOut.finish();
-    }
+    Path tar = tempDir.resolve("slash.tar");
+    CompressUtil.compress(sourceDir, tar, options);
+    assertTrue(containsTarDirectoryEntry(tar, "slash-src/"));
 
-    // 7z 写入器覆盖目录条目
-    Path sevenPath = tempDir.resolve("slash.7z");
-    try (SevenZOutputFile sevenZ = new SevenZOutputFile(sevenPath.toFile())) {
-      Object writer = newInnerInstance("top.csaf.io.CompressUtil$3",
-        new Class<?>[]{SevenZOutputFile.class, CompressOptions.class, int.class, byte[].class},
-        sevenZ, options, bufferSize, buffer);
-      invokeInstanceVoid(writer, "writeDirectory", new Class<?>[]{Path.class, String.class}, dir, "dir/");
-    }
-    // 验证 7z 文件已创建
-    assertTrue(Files.exists(sevenPath));
+    Path seven = tempDir.resolve("slash.7z");
+    CompressUtil.compress(sourceDir, seven, options);
+    assertTrue(containsSevenZDirectoryEntry(seven, "slash-src/"));
   }
 
   /**
@@ -815,28 +898,6 @@ class CompressUtilTest {
     // 解压后校验内容
     CompressUtil.decompress(archive, outDir, options);
     assertEquals("nodate", readText(outDir.resolve("nodate.txt")));
-  }
-
-  /**
-   * walkSources 中 entryName 为空的路径应被跳过。
-   */
-  @Test
-  @DisplayName("WalkSources skips empty entry names")
-  void testWalkSourcesEmptyEntryName() throws Exception {
-    // 使用根路径作为 base，触发 entryName 为空的分支
-    Path root = tempDir.getRoot();
-    CompressOptions options = CompressOptions.builder().includeRootDir(true).build();
-    // 使用代理确保不会真的写入任何条目
-    Class<?> entryWriterClass = Class.forName("top.csaf.io.CompressUtil$EntryWriter");
-    Object writer = newEntryWriterProxy(entryWriterClass);
-    // 反射创建内部 FileVisitor
-    Object visitor = newInnerInstance("top.csaf.io.CompressUtil$4",
-      new Class<?>[]{CompressOptions.class, Path.class, Path.class, entryWriterClass},
-      options, root, root, writer);
-    // 触发 preVisitDirectory 与 visitFile 分支
-    BasicFileAttributes attrs = Files.readAttributes(root, BasicFileAttributes.class);
-    invokeInstanceVoid(visitor, "preVisitDirectory", new Class<?>[]{Path.class, BasicFileAttributes.class}, root, attrs);
-    invokeInstanceVoid(visitor, "visitFile", new Class<?>[]{Path.class, BasicFileAttributes.class}, root, attrs);
   }
 
   /**
@@ -911,6 +972,10 @@ class CompressUtilTest {
     // createXzOutputStream 传入空流触发 NPE
     assertThrows(NullPointerException.class,
       () -> invokePrivate("createXzOutputStream", new Class<?>[]{OutputStream.class, int.class}, null, 1));
+
+    // millisToGzipEpochSeconds 的边界转换
+    long max = invokePrivate("millisToGzipEpochSeconds", new Class<?>[]{long.class}, Long.MAX_VALUE);
+    assertEquals(0xFFFFFFFFL, max);
   }
 
   /**
@@ -1021,6 +1086,50 @@ class CompressUtilTest {
   }
 
   /**
+   * 创建带可控 mtime 的 GZ 文件（mtime 单位：epoch seconds）。
+   */
+  private static void createGzip(Path gzipPath, byte[] data, long modificationTimeSeconds) throws IOException {
+    GzipParameters params = new GzipParameters();
+    params.setModificationTime(modificationTimeSeconds);
+    try (
+      OutputStream fileOut = Files.newOutputStream(gzipPath);
+      GzipCompressorOutputStream gzipOut = new GzipCompressorOutputStream(fileOut, params)
+    ) {
+      gzipOut.write(data);
+    }
+  }
+
+  /**
+   * 检查 TAR 中是否包含指定目录条目。
+   */
+  private static boolean containsTarDirectoryEntry(Path tarPath, String expectedName) throws IOException {
+    try (TarArchiveInputStream in = new TarArchiveInputStream(Files.newInputStream(tarPath))) {
+      TarArchiveEntry entry;
+      while ((entry = in.getNextEntry()) != null) {
+        if (entry.isDirectory() && expectedName.equals(entry.getName())) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+
+  /**
+   * 检查 7z 中是否包含指定目录条目。
+   */
+  private static boolean containsSevenZDirectoryEntry(Path sevenZPath, String expectedName) throws IOException {
+    try (SevenZFile sevenZ = SevenZFile.builder().setPath(sevenZPath).get()) {
+      SevenZArchiveEntry entry;
+      while ((entry = sevenZ.getNextEntry()) != null) {
+        if (entry.isDirectory() && expectedName.equals(entry.getName())) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+
+  /**
    * 读取 RAR 文件中的条目头列表。
    */
   private static List<FileHeader> readRarHeaders(Path rarPath) throws Exception {
@@ -1066,18 +1175,6 @@ class CompressUtilTest {
   }
 
   /**
-   * 获取编译器生成的 switch 映射数组。
-   */
-  private static int[] getSwitchMap() throws Exception {
-    // 定位编译器生成的 switch 映射类与字段
-    Class<?> holder = Class.forName("top.csaf.io.CompressUtil$5");
-    Field field = holder.getDeclaredField("$SwitchMap$top$csaf$io$CompressUtil$Format");
-    // 允许访问私有静态字段
-    field.setAccessible(true);
-    return (int[]) field.get(null);
-  }
-
-  /**
    * 通过反射创建内部类实例。
    */
   private static Object newInnerInstance(String className, Class<?>[] paramTypes, Object... args) throws Exception {
@@ -1088,40 +1185,6 @@ class CompressUtilTest {
     ctor.setAccessible(true);
     // 实例化并返回
     return ctor.newInstance(args);
-  }
-
-  /**
-   * 调用实例方法并解包 InvocationTargetException。
-   */
-  private static void invokeInstanceVoid(Object target, String name, Class<?>[] paramTypes, Object... args) throws Exception {
-    // 反射获取目标方法
-    Method method = target.getClass().getDeclaredMethod(name, paramTypes);
-    method.setAccessible(true);
-    try {
-      // 调用并保持原始异常语义
-      method.invoke(target, args);
-    } catch (InvocationTargetException e) {
-      // 解包真实异常
-      Throwable cause = e.getCause();
-      if (cause instanceof RuntimeException) {
-        throw (RuntimeException) cause;
-      }
-      if (cause instanceof Error) {
-        throw (Error) cause;
-      }
-      throw e;
-    }
-  }
-
-  /**
-   * 创建 EntryWriter 代理，若被调用则抛出 AssertionError。
-   */
-  private static Object newEntryWriterProxy(Class<?> entryWriterClass) {
-    return Proxy.newProxyInstance(entryWriterClass.getClassLoader(), new Class<?>[]{entryWriterClass},
-      (proxy, method, args) -> {
-        // 一旦被调用就抛错，确保走到“不会写入”分支
-        throw new AssertionError("EntryWriter should not be called");
-      });
   }
 
   /**

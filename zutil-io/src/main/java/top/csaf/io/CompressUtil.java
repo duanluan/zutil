@@ -50,6 +50,7 @@ import java.util.zip.Deflater;
  * 压缩/解压工具，支持多种常见归档格式。
  */
 public class CompressUtil {
+  private static final long GZIP_EPOCH_SECONDS_MAX = 0xFFFFFFFFL;
 
   /**
    * 支持的格式枚举。
@@ -195,7 +196,11 @@ public class CompressUtil {
    * 根据路径后缀推断格式。
    */
   public static Format detectFormat(@NonNull Path path) {
-    return detectFormat(path.getFileName().toString());
+    Path fileName = path.getFileName();
+    if (fileName == null) {
+      return null;
+    }
+    return detectFormat(fileName.toString());
   }
 
   /**
@@ -341,7 +346,7 @@ public class CompressUtil {
 
         @Override
         public void writeFile(Path file, String entryName) throws IOException {
-          ZipArchiveEntry entry = new ZipArchiveEntry(file.toFile(), entryName);
+          ZipArchiveEntry entry = new ZipArchiveEntry(entryName);
           if (options.isPreserveLastModified()) {
             // 保留文件最后修改时间
             entry.setTime(Files.getLastModifiedTime(file).toMillis());
@@ -395,7 +400,13 @@ public class CompressUtil {
 
         @Override
         public void writeFile(Path file, String entryName) throws IOException {
-          TarArchiveEntry entry = new TarArchiveEntry(file.toFile(), entryName);
+          TarArchiveEntry entry = new TarArchiveEntry(entryName);
+          // 手动设置大小，避免使用 File 构造器隐式带入源文件时间戳
+          entry.setSize(Files.size(file));
+          if (options.isPreserveLastModified()) {
+            // 保留文件最后修改时间
+            entry.setModTime(Files.getLastModifiedTime(file).toMillis());
+          }
           tarOut.putArchiveEntry(entry);
           try (InputStream in = new BufferedInputStream(Files.newInputStream(file), bufferSize)) {
             // 复制文件内容
@@ -425,11 +436,15 @@ public class CompressUtil {
           if (!entryName.endsWith("/")) {
             entryName = entryName + "/";
           }
-          SevenZArchiveEntry entry = sevenZ.createArchiveEntry(dir.toFile(), entryName);
+          SevenZArchiveEntry entry = new SevenZArchiveEntry();
+          entry.setName(entryName);
           entry.setDirectory(true);
+          entry.setHasStream(false);
           if (options.isPreserveLastModified()) {
             // 保留目录最后修改时间
             entry.setLastModifiedDate(new Date(Files.getLastModifiedTime(dir).toMillis()));
+          } else {
+            entry.setHasLastModifiedDate(false);
           }
           sevenZ.putArchiveEntry(entry);
           sevenZ.closeArchiveEntry();
@@ -437,10 +452,16 @@ public class CompressUtil {
 
         @Override
         public void writeFile(Path file, String entryName) throws IOException {
-          SevenZArchiveEntry entry = sevenZ.createArchiveEntry(file.toFile(), entryName);
+          SevenZArchiveEntry entry = new SevenZArchiveEntry();
+          entry.setName(entryName);
+          entry.setDirectory(false);
+          entry.setHasStream(true);
+          entry.setSize(Files.size(file));
           if (options.isPreserveLastModified()) {
             // 保留文件最后修改时间
             entry.setLastModifiedDate(new Date(Files.getLastModifiedTime(file).toMillis()));
+          } else {
+            entry.setHasLastModifiedDate(false);
           }
           sevenZ.putArchiveEntry(entry);
           try (InputStream in = new BufferedInputStream(Files.newInputStream(file), bufferSize)) {
@@ -466,7 +487,9 @@ public class CompressUtil {
       OutputStream fileOut = newOutputStream(target, options);
       BufferedOutputStream bufferedOut = new BufferedOutputStream(fileOut, bufferSize);
       // 根据格式包裹压缩输出流
-      OutputStream compressedOut = wrapCompressorOutputStream(bufferedOut, format, options)
+      OutputStream compressedOut = format == Format.GZ
+        ? new GzipCompressorOutputStream(bufferedOut, buildSingleGzipParameters(source, options))
+        : wrapCompressorOutputStream(bufferedOut, format, options)
     ) {
       // 直接压缩文件内容
       copy(in, compressedOut, buffer, null);
@@ -483,7 +506,7 @@ public class CompressUtil {
     int bufferSize = bufferSize(options);
     byte[] buffer = new byte[bufferSize];
     // 按指定编码读取 ZIP 条目名
-    try (ZipFile zipFile = new ZipFile(source.toFile(), options.getCharset().name())) {
+    try (ZipFile zipFile = ZipFile.builder().setPath(source).setCharset(options.getCharset()).get()) {
       Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
       while (entries.hasMoreElements()) {
         ZipArchiveEntry entry = entries.nextElement();
@@ -493,13 +516,8 @@ public class CompressUtil {
         }
         // 解析条目路径并防止 Zip Slip
         Path entryPath = resolveEntryPath(normalizedTarget, entry.getName(), options);
-        if (entry.isDirectory()) {
-          ensureDirectory(entryPath);
+        if (prepareEntryTarget(entryPath, entry.isDirectory())) {
           continue;
-        }
-        Path parent = entryPath.getParent();
-        if (parent != null) {
-          ensureDirectory(parent);
         }
         try (InputStream in = new BufferedInputStream(zipFile.getInputStream(entry), bufferSize);
              OutputStream out = newOutputStream(entryPath, options)) {
@@ -529,20 +547,15 @@ public class CompressUtil {
       TarArchiveInputStream tarIn = new TarArchiveInputStream(compressedIn)
     ) {
       TarArchiveEntry entry;
-      while ((entry = tarIn.getNextTarEntry()) != null) {
+      while ((entry = tarIn.getNextEntry()) != null) {
         // 解压条目数限制
         if (tracker != null) {
           tracker.onEntry(entry.getName());
         }
         // 解析条目路径并防止目录穿越
         Path entryPath = resolveEntryPath(normalizedTarget, entry.getName(), options);
-        if (entry.isDirectory()) {
-          ensureDirectory(entryPath);
+        if (prepareEntryTarget(entryPath, entry.isDirectory())) {
           continue;
-        }
-        Path parent = entryPath.getParent();
-        if (parent != null) {
-          ensureDirectory(parent);
         }
         try (OutputStream out = newOutputStream(entryPath, options)) {
           // 写出文件内容
@@ -564,7 +577,7 @@ public class CompressUtil {
     int bufferSize = bufferSize(options);
     byte[] buffer = new byte[bufferSize];
     // 打开 7z 文件读取
-    try (SevenZFile sevenZ = new SevenZFile(source.toFile())) {
+    try (SevenZFile sevenZ = SevenZFile.builder().setPath(source).get()) {
       SevenZArchiveEntry entry;
       while ((entry = sevenZ.getNextEntry()) != null) {
         // 解压条目数限制
@@ -573,13 +586,8 @@ public class CompressUtil {
         }
         // 解析条目路径并防止目录穿越
         Path entryPath = resolveEntryPath(normalizedTarget, entry.getName(), options);
-        if (entry.isDirectory()) {
-          ensureDirectory(entryPath);
+        if (prepareEntryTarget(entryPath, entry.isDirectory())) {
           continue;
-        }
-        Path parent = entryPath.getParent();
-        if (parent != null) {
-          ensureDirectory(parent);
         }
         try (OutputStream out = newOutputStream(entryPath, options)) {
           // 写出文件内容
@@ -606,7 +614,7 @@ public class CompressUtil {
   private static void decompressRar(Path source, Path targetDir, CompressOptions options, ExtractTracker tracker) {
     // 打开 RAR 文件读取
     try (Archive archive = new Archive(source.toFile())) {
-      decompressRarEntries(archive.getFileHeaders(), (header, out) -> archive.extractFile(header, out),
+      decompressRarEntries(archive.getFileHeaders(), archive::extractFile,
         targetDir, options, tracker);
     } catch (IOException | RarException e) {
       throw new RuntimeException("Decompress rar failed: " + source, e);
@@ -641,13 +649,8 @@ public class CompressUtil {
       }
       // 解析条目路径并防止路径穿越
       Path entryPath = resolveEntryPath(normalizedTarget, entryName, options);
-      if (header.isDirectory()) {
-        ensureDirectory(entryPath);
+      if (prepareEntryTarget(entryPath, header.isDirectory())) {
         continue;
-      }
-      Path parent = entryPath.getParent();
-      if (parent != null) {
-        ensureDirectory(parent);
       }
       try (OutputStream fileOut = newOutputStream(entryPath, options);
            OutputStream trackedOut = tracker == null ? fileOut : new TrackingOutputStream(fileOut, tracker)) {
@@ -698,7 +701,8 @@ public class CompressUtil {
       if (decompressedIn instanceof GzipCompressorInputStream) {
         // 读取 GZ 元数据中的时间戳
         GzipCompressorInputStream gzipIn = (GzipCompressorInputStream) decompressedIn;
-        applyLastModified(targetFile, gzipIn.getMetaData().getModificationTime(), options);
+        // GZIP 元数据中的修改时间单位为秒
+        applyLastModified(targetFile, gzipEpochSecondsToMillis(gzipIn.getMetaData().getModificationTime()), options);
       }
     } catch (IOException e) {
       throw new RuntimeException("Decompress file failed: " + source, e);
@@ -732,10 +736,68 @@ public class CompressUtil {
   private static String stripExtension(String lowerName, String originalName, String suffix) {
     // 后缀匹配成功则截取
     if (lowerName.endsWith(suffix)) {
-      return originalName.substring(0, originalName.length() - suffix.length());
+      String stripped = originalName.substring(0, originalName.length() - suffix.length());
+      // 避免得到空名或仅 "."/".." 的非法输出名
+      if (!stripped.isEmpty() && !".".equals(stripped) && !"..".equals(stripped)) {
+        return stripped;
+      }
     }
     // 未匹配则追加 .out
     return originalName + ".out";
+  }
+
+  /**
+   * 为单文件 GZ 压缩构建参数，按选项控制是否写入源文件时间戳。
+   */
+  private static GzipParameters buildSingleGzipParameters(Path source, CompressOptions options) throws IOException {
+    GzipParameters params = new GzipParameters();
+    params.setCompressionLevel(resolveDeflaterLevel(options.getCompressionLevel()));
+    if (options.isPreserveLastModified()) {
+      params.setModificationTime(millisToGzipEpochSeconds(Files.getLastModifiedTime(source).toMillis()));
+    } else {
+      // 0 表示不写入有效修改时间
+      params.setModificationTime(0L);
+    }
+    return params;
+  }
+
+  /**
+   * GZIP 头中的时间戳为 epoch seconds，统一转换为毫秒。
+   */
+  private static long gzipEpochSecondsToMillis(long epochSeconds) {
+    if (epochSeconds <= 0) {
+      return epochSeconds;
+    }
+    if (epochSeconds > Long.MAX_VALUE / 1000L) {
+      return Long.MAX_VALUE;
+    }
+    return epochSeconds * 1000L;
+  }
+
+  /**
+   * 将毫秒时间戳转换为 GZIP 头使用的 epoch seconds。
+   */
+  private static long millisToGzipEpochSeconds(long timeMillis) {
+    if (timeMillis <= 0) {
+      return 0L;
+    }
+    long epochSeconds = timeMillis / 1000L;
+    return Math.min(epochSeconds, GZIP_EPOCH_SECONDS_MAX);
+  }
+
+  /**
+   * 为解压条目准备输出路径：目录条目创建目录并返回 true，文件条目创建父目录并返回 false。
+   */
+  private static boolean prepareEntryTarget(Path entryPath, boolean directoryEntry) {
+    if (directoryEntry) {
+      ensureDirectory(entryPath);
+      return true;
+    }
+    Path parent = entryPath.getParent();
+    if (parent != null) {
+      ensureDirectory(parent);
+    }
+    return false;
   }
 
   /**
@@ -753,7 +815,7 @@ public class CompressUtil {
       case BZ2:
         // BZ2 使用块大小（1-9）
         int level = resolveDeflaterLevel(options.getCompressionLevel());
-        int blockSize = Math.max(1, Math.min(level == 0 ? 1 : level, 9));
+        int blockSize = Math.max(1, Math.min(level, 9));
         return new BZip2CompressorOutputStream(out, blockSize);
       case TAR_XZ:
       case XZ:
@@ -814,16 +876,8 @@ public class CompressUtil {
     if (level == Deflater.DEFAULT_COMPRESSION) {
       return 6;
     }
-    // 小于最小值则取 NO_COMPRESSION
-    if (level < Deflater.NO_COMPRESSION) {
-      return Deflater.NO_COMPRESSION;
-    }
-    // 超过最大值则取 BEST_COMPRESSION
-    if (level > Deflater.BEST_COMPRESSION) {
-      return Deflater.BEST_COMPRESSION;
-    }
-    // 合法区间直接返回
-    return level;
+    // 其余值钳制到合法区间
+    return Math.max(Deflater.NO_COMPRESSION, Math.min(level, Deflater.BEST_COMPRESSION));
   }
 
   /**
@@ -891,8 +945,9 @@ public class CompressUtil {
         // 计算相对路径基准
         Path base = resolveBaseForDirectory(source, options.isIncludeRootDir());
         Files.walkFileTree(source, visitOptions, Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
+          @SuppressWarnings("NullableProblems")
           @Override
-          public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+          public FileVisitResult preVisitDirectory(@NonNull Path dir, @NonNull BasicFileAttributes attrs) throws IOException {
             // 不包含根目录时跳过源目录本身
             if (!options.isIncludeRootDir() && dir.equals(source)) {
               return FileVisitResult.CONTINUE;
@@ -904,8 +959,9 @@ public class CompressUtil {
             return FileVisitResult.CONTINUE;
           }
 
+          @SuppressWarnings("NullableProblems")
           @Override
-          public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+          public FileVisitResult visitFile(@NonNull Path file, @NonNull BasicFileAttributes attrs) throws IOException {
             // 不跟随软链接时跳过
             if (!options.isFollowLinks() && Files.isSymbolicLink(file)) {
               return FileVisitResult.CONTINUE;
@@ -971,7 +1027,7 @@ public class CompressUtil {
   /**
    * 复制输入流到输出流，并进行解压大小统计。
    */
-  private static long copy(InputStream in, OutputStream out, byte[] buffer, ExtractTracker tracker) throws IOException {
+  private static void copy(InputStream in, OutputStream out, byte[] buffer, ExtractTracker tracker) throws IOException {
     long total = 0;
     int read;
     while ((read = in.read(buffer)) != -1) {
@@ -982,29 +1038,28 @@ public class CompressUtil {
       out.write(buffer, 0, read);
       total += read;
     }
-    return total;
   }
 
   /**
    * 复制输入流到 7z 输出流。
    */
-  private static long copy(InputStream in, SevenZOutputFile out, byte[] buffer) throws IOException {
-    long total = 0;
+  private static void copy(InputStream in, SevenZOutputFile out, byte[] buffer) throws IOException {
     int read;
     while ((read = in.read(buffer)) != -1) {
       out.write(buffer, 0, read);
-      total += read;
     }
-    return total;
   }
 
   /**
    * 从 7z 文件读取并写出，同时进行解压大小统计。
    */
-  private static long copy(SevenZFile in, OutputStream out, byte[] buffer, ExtractTracker tracker) throws IOException {
+  private static void copy(SevenZFile in, OutputStream out, byte[] buffer, ExtractTracker tracker) throws IOException {
     long total = 0;
     int read;
-    while ((read = in.read(buffer)) > 0) {
+    while ((read = in.read(buffer)) != -1) {
+      if (read == 0) {
+        continue;
+      }
       if (tracker != null) {
         // 解压过程计数与限额检查
         tracker.onBytes(read, total + read);
@@ -1012,7 +1067,6 @@ public class CompressUtil {
       out.write(buffer, 0, read);
       total += read;
     }
-    return total;
   }
 
   /**
@@ -1055,7 +1109,8 @@ public class CompressUtil {
     }
 
     @Override
-    public void write(byte[] b, int off, int len) throws IOException {
+    @SuppressWarnings("NullableProblems")
+    public void write(@NonNull byte[] b, int off, int len) throws IOException {
       // 批量写入前先触发限额检查
       onBytes(len);
       delegate.write(b, off, len);
