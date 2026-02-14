@@ -38,7 +38,7 @@
 <dependency>
   <groupId>top.csaf</groupId>
   <artifactId>zutil-all</artifactId>
-  <version>2.0.0-beta3</version>
+  <version>2.0.0-beta4</version>
 </dependency>
 ```
 
@@ -46,9 +46,9 @@
 
 ```groovy
 // groovy
-implementation 'top.csaf:zutil-all:2.0.0-beta3'
+implementation 'top.csaf:zutil-all:2.0.0-beta4'
 // kotlin
-implementation("top.csaf:zutil-all:2.0.0-beta3")
+implementation("top.csaf:zutil-all:2.0.0-beta4")
 ```
 
 ### 安装注意
@@ -62,7 +62,7 @@ implementation("top.csaf:zutil-all:2.0.0-beta3")
 <dependency>
   <groupId>top.csaf</groupId>
   <artifactId>zutil-all</artifactId>
-   <version>2.0.0-beta3</version>
+   <version>2.0.0-beta4</version>
   <exclusions>
     <exclusion>
       <groupId>org.slf4j</groupId>
@@ -96,7 +96,7 @@ implementation("top.csaf:zutil-all:2.0.0-beta3")
 // groovy
 dependencies {
   // 方式一：ZUtil 排除 slf4j
-   implementation('top.csaf:zutil-all:2.0.0-beta3') {
+   implementation('top.csaf:zutil-all:2.0.0-beta4') {
     exclude group: 'org.slf4j', module: 'slf4j-api'
     exclude group: 'org.slf4j', module: 'slf4j-simple'
   }
@@ -109,7 +109,7 @@ dependencies {
 // kotlin
 dependencies {
   // 方式一：ZUtil 排除 slf4j
-   implementation("top.csaf:zutil-all:2.0.0-beta3") {
+   implementation("top.csaf:zutil-all:2.0.0-beta4") {
     exclude(group = "org.slf4j", module = "slf4j-api")
     exclude(group = "org.slf4j", module = "slf4j-simple")
   }
