@@ -355,7 +355,8 @@ class CompressUtilTest {
   void testSingleGzipPreserveLastModifiedOption() throws Exception {
     Path sourceFile = tempDir.resolve("single-gzip.txt");
     writeText(sourceFile, "single-gzip");
-    long sourceTime = 946_684_800_000L; // 2000-01-01T00:00:00Z
+    // 2000-01-01T00:00:00Z
+    long sourceTime = 946_684_800_000L;
     Files.setLastModifiedTime(sourceFile, FileTime.fromMillis(sourceTime));
 
     Path preserveArchive = tempDir.resolve("single-gzip-preserve.gz");
@@ -402,7 +403,8 @@ class CompressUtilTest {
   void testArchiveFileTimestampNotPreservedWhenDisabled() throws Exception {
     Path sourceFile = tempDir.resolve("mtime-off.txt");
     writeText(sourceFile, "mtime-off");
-    long sourceTime = 946_684_800_000L; // 2000-01-01T00:00:00Z
+    // 2000-01-01T00:00:00Z
+    long sourceTime = 946_684_800_000L;
     Files.setLastModifiedTime(sourceFile, FileTime.fromMillis(sourceTime));
 
     Map<Format, String> formats = new HashMap<>();
@@ -472,6 +474,88 @@ class CompressUtilTest {
     Path extracted = outDir.resolve("empty.txt");
     assertTrue(Files.exists(extracted));
     assertEquals(0L, Files.size(extracted));
+  }
+
+  /**
+   * RAR 压缩命令缺失时应给出明确错误。
+   */
+  @Test
+  @DisplayName("RAR 压缩命令缺失")
+  void testCompressRarCommandNotFound() throws Exception {
+    String key = "zutil.rar.command";
+    String previous = System.getProperty(key);
+    System.setProperty(key, "zutil-rar-command-not-found");
+    try {
+      Path sourceDir = createSampleDir(tempDir.resolve("rar-missing-src"));
+      RuntimeException thrown = assertThrows(RuntimeException.class,
+        () -> CompressUtil.compress(sourceDir, tempDir.resolve("missing-command.rar")));
+      assertTrue(thrown.getMessage().contains("RAR command not found"));
+    } finally {
+      if (previous == null) {
+        System.clearProperty(key);
+      } else {
+        System.setProperty(key, previous);
+      }
+    }
+  }
+
+  /**
+   * 环境安装了rar命令时，应支持生成rar文件。
+   */
+  @Test
+  @DisplayName("RAR 压缩命令可用")
+  void testCompressRarWhenCommandAvailable() throws Exception {
+    Path sourceDir = createSampleDir(tempDir.resolve("rar-src"));
+    Path rar = tempDir.resolve("generated.rar");
+    try {
+      CompressUtil.compress(sourceDir, rar, CompressOptions.builder().includeRootDir(false).build());
+    } catch (RuntimeException e) {
+      if (e.getMessage() != null && e.getMessage().contains("RAR command not found")) {
+        Assumptions.assumeTrue(false, e.getMessage());
+        return;
+      }
+      throw e;
+    }
+    assertTrue(Files.exists(rar));
+    assertTrue(Files.size(rar) > 0L);
+  }
+
+  /**
+   * overwrite=false 且目标已存在时，应直接失败而不是更新已有rar。
+   */
+  @Test
+  @DisplayName("RAR overwrite=false 时目标已存在")
+  void testCompressRarOverwriteFalseWhenTargetExists() throws Exception {
+    Path sourceDir = createSampleDir(tempDir.resolve("rar-overwrite-src"));
+    Path rar = tempDir.resolve("existing.rar");
+    writeText(rar, "existing");
+    RuntimeException thrown = assertThrows(RuntimeException.class,
+      () -> CompressUtil.compress(sourceDir, rar, CompressOptions.builder()
+        .overwrite(false)
+        .includeRootDir(false)
+        .build()));
+    assertTrue(thrown.getMessage().contains("Target exists"));
+  }
+
+  /**
+   * 环境存在rar命令时，目标父目录不存在也应自动创建。
+   */
+  @Test
+  @DisplayName("RAR 目标父目录自动创建")
+  void testCompressRarCreateParentDirWhenCommandAvailable() throws Exception {
+    Path sourceDir = createSampleDir(tempDir.resolve("rar-parent-src"));
+    Path rar = tempDir.resolve("nested").resolve("child").resolve("generated.rar");
+    try {
+      CompressUtil.compress(sourceDir, rar, CompressOptions.builder().includeRootDir(false).build());
+    } catch (RuntimeException e) {
+      if (e.getMessage() != null && e.getMessage().contains("RAR command not found")) {
+        Assumptions.assumeTrue(false, e.getMessage());
+        return;
+      }
+      throw e;
+    }
+    assertTrue(Files.exists(rar));
+    assertTrue(Files.size(rar) > 0L);
   }
 
   /**
@@ -736,6 +820,25 @@ class CompressUtilTest {
     assertThrows(NullPointerException.class, () -> CompressUtil.decompress((Path) null, out, new CompressOptions()));
     assertThrows(NullPointerException.class, () -> CompressUtil.decompress(sourceFile, (Path) null, new CompressOptions()));
     assertThrows(NullPointerException.class, () -> CompressUtil.detectFormat((Path) null));
+  }
+
+  /**
+   * charset 为 null 时应回退到 UTF-8，而不是抛出 NPE。
+   */
+  @Test
+  @DisplayName("charset 为 null 时回退到 UTF-8")
+  void testNullCharsetFallback() throws Exception {
+    Path sourceFile = tempDir.resolve("null-charset.txt");
+    writeText(sourceFile, "charset");
+    Path zip = tempDir.resolve("null-charset.zip");
+    CompressOptions nullCharset = CompressOptions.builder()
+      .charset(null)
+      .build();
+
+    CompressUtil.compress(Collections.singletonList(sourceFile), zip, nullCharset);
+    Path out = tempDir.resolve("null-charset-out");
+    CompressUtil.decompress(zip, out, nullCharset);
+    assertEquals("charset", readText(out.resolve("null-charset.txt")));
   }
 
   /**
