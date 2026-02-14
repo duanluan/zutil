@@ -87,6 +87,7 @@
     <batik.version>1.19</batik.version>
     <thumbnailator.version>0.4.21</thumbnailator.version>
     <transmittable.thread.local.version>2.14.5</transmittable.thread.local.version>
+    <resilience4j.version>1.7.1</resilience4j.version>
     <ulid.creator.version>5.2.3</ulid.creator.version>
     <uuid.creator.version>6.1.1</uuid.creator.version>
     <ip2region.version>2.7.0</ip2region.version>
@@ -243,6 +244,11 @@
         <groupId>com.alibaba</groupId>
         <artifactId>transmittable-thread-local</artifactId>
         <version>${transmittable.thread.local.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.resilience4j</groupId>
+        <artifactId>resilience4j-retry</artifactId>
+        <version>${resilience4j.version}</version>
       </dependency>
       <!-- A Java library for generating ULIDs (Universally Unique Lexicographically Sortable Identifier). -->
       <dependency>
