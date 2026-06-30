@@ -226,7 +226,7 @@ public class DateFeat {
   public static Locale getLazy(final Locale locale) {
     if (LOCALE_ALWAYS != null) {
       return LOCALE_ALWAYS;
-    } else if (ZONE_ID.get() != null) {
+    } else if (LOCALE.get() != null) {
       Locale locale1 = LOCALE.get();
       LOCALE.remove();
       return locale1;
@@ -400,7 +400,7 @@ public class DateFeat {
    * @return 最小 Date 年，默认为 {@link DateConst#DEFAULT_MIN_DATE_YEAR}
    */
   public static Long getMinDateYear() {
-    if (MIN_DATE_YEAR_ALWAYS > 0) {
+    if (MIN_DATE_YEAR_ALWAYS != null && MIN_DATE_YEAR_ALWAYS > 0) {
       return MIN_DATE_YEAR_ALWAYS;
     } else if (MIN_DATE_YEAR.get() != null && MIN_DATE_YEAR.get() > 0) {
       Long minDateYear1 = MIN_DATE_YEAR.get();

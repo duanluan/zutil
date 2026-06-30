@@ -7,6 +7,7 @@ import top.csaf.id.UuidUtil;
 import top.csaf.id.UuidUtil.UuidType;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -18,7 +19,7 @@ class UuidUtilTest {
 
   @DisplayName("生成：标准版本测试 (V1, V4, V6, V7)")
   @Test
-  void testGeneration() {
+  void testGeneration() throws Exception {
     // V7
     UUID v7 = UuidUtil.v7();
     assertEquals(7, v7.version());
@@ -37,10 +38,32 @@ class UuidUtilTest {
     String name = "test";
     assertEquals(3, UuidUtil.v3(name).version());
     assertEquals(5, UuidUtil.v5(name).version());
+    assertThrows(NullPointerException.class, () -> UuidUtil.v3(null));
+    assertThrows(NullPointerException.class, () -> UuidUtil.v5(null));
 
     // Configurable
     assertEquals(7, UuidUtil.get(UuidType.V7).version());
+    assertEquals(4, UuidUtil.get(UuidType.V4).version());
+    assertEquals(1, UuidUtil.get(UuidType.V1).version());
+    assertEquals(6, UuidUtil.get(UuidType.V6).version());
+    assertEquals(2, UuidUtil.get(UuidType.V2).version());
     assertThrows(IllegalArgumentException.class, () -> UuidUtil.get(UuidType.V3));
+    assertThrows(IllegalArgumentException.class, () -> UuidUtil.get(UuidType.V5));
+    assertThrows(NullPointerException.class, () -> UuidUtil.get(null));
+    for (UuidType type : UuidType.values()) {
+      assertEquals(type, UuidType.valueOf(type.name()));
+    }
+    Class<?> switchMapClass = Class.forName("top.csaf.id.UuidUtil$1");
+    Field switchMapField = switchMapClass.getDeclaredField("$SwitchMap$top$csaf$id$UuidUtil$UuidType");
+    switchMapField.setAccessible(true);
+    int[] switchMap = (int[]) switchMapField.get(null);
+    int originalSwitchValue = switchMap[UuidType.V4.ordinal()];
+    try {
+      switchMap[UuidType.V4.ordinal()] = 0;
+      assertEquals(7, UuidUtil.get(UuidType.V4).version());
+    } finally {
+      switchMap[UuidType.V4.ordinal()] = originalSwitchValue;
+    }
   }
 
   @DisplayName("编解码：各种格式转换")
@@ -75,6 +98,8 @@ class UuidUtilTest {
     // Null checks
     assertNull(UuidUtil.toSimple(null));
     assertNull(UuidUtil.toBase62(null));
+    assertNull(UuidUtil.toBase64(null));
+    assertNull(UuidUtil.toUrn(null));
   }
 
   @DisplayName("提取：时间戳解析")

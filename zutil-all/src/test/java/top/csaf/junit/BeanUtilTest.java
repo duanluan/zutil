@@ -190,4 +190,26 @@ public class BeanUtilTest {
     List<TestBean> testBean2 = BeanUtil.copyProperties(Collections.singletonList(testBean), TestBean.class);
     assertEquals("1", testBean2.get(0).getSuperName());
   }
+
+  @DisplayName("BeanUtil 补充分支")
+  @Test
+  void additionalBranches() {
+    Map<String, Object> nested = new HashMap<>();
+    nested.put("plain", 1);
+    nested.put("array", new Object[]{"a", 2});
+    nested.put("list", Arrays.asList("b", 3));
+    Map<String, Object> map = new HashMap<>();
+    map.put("nested", nested);
+    map.put("nullValue", null);
+    map.put("char", 'c');
+    Map<String, Object> result = BeanUtil.toMap(map);
+    assertNotNull(result.get("nested"));
+    assertEquals('c', result.get("char"));
+    assertNull(result.get("nullValue"));
+
+    assertFalse(BeanUtil.hasProperty(new TestBean(), ""));
+    TestBean testBean = new TestBean();
+    assertFalse(BeanUtil.setProperty(testBean, "class", "x"));
+    assertEquals("ok", BeanUtil.deepClone(new TestBean("ok")).getName());
+  }
 }

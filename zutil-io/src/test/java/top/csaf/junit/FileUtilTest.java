@@ -3,9 +3,14 @@ package top.csaf.junit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import top.csaf.io.FileUtil;
+import top.csaf.io.IOUtil;
 
 import java.io.File;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,6 +23,35 @@ import static org.junit.jupiter.api.Assertions.*;
 class FileUtilTest {
 
   @Test
+  @DisplayName("工具类构造器可反射创建")
+  void testConstructors() throws Exception {
+    Constructor<FileUtil> fileUtilConstructor = FileUtil.class.getDeclaredConstructor();
+    assertTrue(Modifier.isPublic(fileUtilConstructor.getModifiers()));
+    assertNotNull(fileUtilConstructor.newInstance());
+
+    Constructor<IOUtil> ioUtilConstructor = IOUtil.class.getDeclaredConstructor();
+    assertTrue(Modifier.isPublic(ioUtilConstructor.getModifiers()));
+    assertNotNull(ioUtilConstructor.newInstance());
+  }
+
+  @Test
+  @DisplayName("空参数校验")
+  void testNullArguments() {
+    assertThrows(NullPointerException.class, () -> FileUtil.getResourceAsStream((Class<?>) null, "a.txt"));
+    assertThrows(NullPointerException.class, () -> FileUtil.getResourceAsStream(FileUtilTest.class, null));
+    assertThrows(NullPointerException.class, () -> FileUtil.getResourceAsStream((String) null));
+    assertThrows(NullPointerException.class, () -> FileUtil.getResourceRootPath(null));
+    assertThrows(NullPointerException.class, () -> FileUtil.getClassPath(null));
+    assertThrows(NullPointerException.class, () -> FileUtil.getFileExtension((String) null));
+    assertThrows(NullPointerException.class, () -> FileUtil.getFileExtension((File) null));
+    assertThrows(NullPointerException.class, () -> FileUtil.getDirPathAndNameByPath(null));
+    assertThrows(NullPointerException.class, () -> FileUtil.getDirPathByPath(null));
+    assertThrows(NullPointerException.class, () -> FileUtil.getNameByPath(null));
+    assertThrows(NullPointerException.class, () -> FileUtil.replace(null, "new.$2"));
+    assertThrows(NullPointerException.class, () -> FileUtil.replace("old.txt", null));
+  }
+
+  @Test
   @DisplayName("获取工作目录与项目路径")
   void testGetPaths() {
     assertNotNull(FileUtil.getUserDir());
@@ -27,13 +61,31 @@ class FileUtilTest {
 
   @Test
   @DisplayName("获取资源流 - 覆盖前导斜杠逻辑")
-  void testGetResourceAsStream() {
+  void testGetResourceAsStream() throws Exception {
     // 测试带 "/" 的情况，覆盖 if (path.startsWith("/"))
-    InputStream stream1 = FileUtil.getResourceAsStream(FileUtilTest.class, "/NonExistentFile.txt");
-    assertNull(stream1);
+    try (InputStream stream1 = FileUtil.getResourceAsStream(FileUtilTest.class, "/NonExistentFile.txt")) {
+      assertNull(stream1);
+    }
 
-    InputStream stream2 = FileUtil.getResourceAsStream("/NonExistentFile.txt");
-    assertNull(stream2);
+    try (InputStream stream2 = FileUtil.getResourceAsStream("/NonExistentFile.txt")) {
+      assertNull(stream2);
+    }
+
+    try (InputStream stream3 = FileUtil.getResourceAsStream(FileUtilTest.class, "/top/csaf/junit/FileUtilTest.class")) {
+      assertNotNull(stream3);
+    }
+
+    try (InputStream stream4 = FileUtil.getResourceAsStream("/top/csaf/junit/FileUtilTest.class")) {
+      assertNotNull(stream4);
+    }
+
+    try (InputStream stream5 = FileUtil.getResourceAsStream(FileUtilTest.class, "top/csaf/junit/FileUtilTest.class")) {
+      assertNotNull(stream5);
+    }
+
+    try (InputStream stream6 = FileUtil.getResourceAsStream("top/csaf/junit/FileUtilTest.class")) {
+      assertNotNull(stream6);
+    }
   }
 
   @Test
@@ -60,6 +112,7 @@ class FileUtilTest {
     // 2. 覆盖 getClassPath(Class) 的 resUrl == null 分支
     // 数组类通常没有对应的资源文件，getResource("") 返回 null
     assertNull(FileUtil.getClassPath(String[].class));
+    assertThrows(NullPointerException.class, () -> FileUtil.getResourceRootPath(String[].class));
   }
 
   @Test
@@ -89,8 +142,11 @@ class FileUtilTest {
   void testGetFileExtension() {
     assertEquals("txt", FileUtil.getFileExtension("test.txt"));
     assertEquals("java", FileUtil.getFileExtension("src/main/Test.java"));
+    assertEquals("gz", FileUtil.getFileExtension("archive.tar.gz"));
     assertEquals("", FileUtil.getFileExtension("Makefile"));
     assertEquals("", FileUtil.getFileExtension("path/to/file"));
+    assertEquals("", FileUtil.getFileExtension("path.with.dot/file"));
+    assertEquals("", FileUtil.getFileExtension("trailing."));
     assertEquals("xml", FileUtil.getFileExtension(new File("pom.xml")));
   }
 
@@ -100,6 +156,10 @@ class FileUtilTest {
     String[] res1 = FileUtil.getDirPathAndNameByPath("d1/d2/test.txt");
     assertEquals("d1/d2/", res1[0]);
     assertEquals("test.txt", res1[1]);
+
+    String[] resBackslash = FileUtil.getDirPathAndNameByPath("d1\\d2\\test.txt");
+    assertEquals("d1\\d2\\", resBackslash[0]);
+    assertEquals("test.txt", resBackslash[1]);
 
     String[] res2 = FileUtil.getDirPathAndNameByPath("test.txt");
     assertEquals("", res2[0]);
@@ -128,6 +188,7 @@ class FileUtilTest {
   @DisplayName("根据路径获取文件名")
   void testGetNameByPath() {
     assertEquals("test.txt", FileUtil.getNameByPath("/a/b/test.txt"));
+    assertEquals("test.txt", FileUtil.getNameByPath("a\\b\\test.txt"));
     assertEquals("test.txt", FileUtil.getNameByPath("test.txt"));
   }
 
@@ -137,11 +198,37 @@ class FileUtilTest {
     String filePath = "root/dir/oldName.txt";
 
     assertThrows(IllegalArgumentException.class, () -> FileUtil.replace("root/dir/", "any"));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> FileUtil.replace("root/dir/oldName", "newName_$1.$2"));
 
     String res1 = FileUtil.replace(filePath, "newName_$1.$2");
     assertEquals("root/dir/newName_oldName.txt", res1);
 
     String res2 = FileUtil.replace(filePath, "newRoot/newName.$2");
     assertEquals("newRoot/newName.txt", res2);
+
+    String res3 = FileUtil.replace(filePath, "newRoot/nested/$1-copy.$2");
+    assertEquals("newRoot/nested/oldName-copy.txt", res3);
+
+    String res4 = FileUtil.replace("old.name.txt", "$1.$2");
+    assertEquals("old.name", res4);
+  }
+
+  private static <T> T invokePrivate(String name, Class<?>[] paramTypes, Object... args) throws Exception {
+    Method method = FileUtil.class.getDeclaredMethod(name, paramTypes);
+    method.setAccessible(true);
+    try {
+      @SuppressWarnings("unchecked")
+      T result = (T) method.invoke(null, args);
+      return result;
+    } catch (InvocationTargetException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof RuntimeException) {
+        throw (RuntimeException) cause;
+      }
+      if (cause instanceof Error) {
+        throw (Error) cause;
+      }
+      throw e;
+    }
   }
 }

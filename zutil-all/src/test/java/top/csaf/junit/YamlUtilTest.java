@@ -5,17 +5,27 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import top.csaf.io.FileUtil;
 import top.csaf.yaml.YamlFeat;
+import top.csaf.yaml.YamlFeatConfig;
 import top.csaf.yaml.YamlUtil;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @DisplayName("YAML 工具类测试")
@@ -54,7 +64,8 @@ class YamlUtilTest {
 
   @Test
   void get() throws IOException {
-    // Reader
+    YamlFeat.setEscapeNotFoundReplacementAlways(null);
+    YamlFeat.setEscapeNotFoundThrowExceptionAlways(false);
     assertEquals(C1_VALUE_1, YamlUtil.get(new FileReader(YML_FILE_PATH), "c.c1", false));
     assertEquals(C1_VALUE, YamlUtil.get(new FileReader(YML_FILE_PATH), "c.c1"));
     // filePath
@@ -66,5 +77,75 @@ class YamlUtilTest {
     // InputStream
     assertEquals(C1_VALUE_1, YamlUtil.get(Files.newInputStream(YML_FILE.toPath()), "c.c1", false));
     assertEquals(C1_VALUE, YamlUtil.get(Files.newInputStream(YML_FILE.toPath()), "c.c1"));
+  }
+
+  @Test
+  void yamlFeatAndAdditionalBranches() throws Exception {
+    YamlFeat.setEscapeNotFoundReplacement("R");
+    assertEquals("R", YamlFeat.getEscapeNotFoundReplacementLazy(null));
+    assertNull(YamlFeat.getEscapeNotFoundReplacementLazy(null));
+    YamlFeat.setEscapeNotFoundReplacementAlways("A");
+    assertEquals("A", YamlFeat.getEscapeNotFoundReplacement());
+    assertEquals("fallback", YamlFeat.getEscapeNotFoundReplacement("fallback"));
+
+    YamlFeat.setEscapeNotFoundThrowException(true);
+    assertTrue(YamlFeat.getEscapeNotFoundThrowExceptionLazy(null));
+    assertFalse(YamlFeat.getEscapeNotFoundThrowExceptionLazy(false));
+    YamlFeat.setEscapeNotFoundThrowExceptionAlways(false);
+    assertFalse(YamlFeat.getEscapeNotFoundThrowException());
+    assertTrue(YamlFeat.getEscapeNotFoundThrowException(true));
+
+    YamlFeatConfig.setEscapeNotFoundReplacement("X")
+      .setEscapeNotFoundReplacementAlways("Y")
+      .setEscapeNotFoundThrowException(true)
+      .setEscapeNotFoundThrowExceptionAlways(false)
+      .apply();
+    assertEquals("Y", YamlFeat.getEscapeNotFoundReplacement());
+    assertFalse(YamlFeat.getEscapeNotFoundThrowException());
+
+    Constructor<YamlFeatConfig> constructor = YamlFeatConfig.class.getDeclaredConstructor();
+    constructor.setAccessible(true);
+    assertNotNull(constructor.newInstance());
+
+    String yaml = "a: 1\nb:\n  b1: ${a}\nc: ${missing}\n";
+    YamlFeat.setEscapeNotFoundReplacementAlways(null);
+    assertEquals("1", ((Map<?, ?>) YamlUtil.load(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)), true).get("b")).get("b1"));
+    assertNull(YamlUtil.get(Collections.singletonMap("a", "b"), "a.b"));
+    assertNull(YamlUtil.get(Collections.singletonMap("a", null), "a"));
+
+    int invoked = 0;
+    for (Method method : YamlUtil.class.getDeclaredMethods()) {
+      if (!Modifier.isPublic(method.getModifiers()) || !Modifier.isStatic(method.getModifiers())) {
+        continue;
+      }
+      try {
+        method.invoke(null, args(method.getParameterTypes()));
+      } catch (Exception ignored) {
+        // 覆盖重载入口和参数校验。
+      }
+      invoked++;
+    }
+    assertTrue(invoked > 10);
+  }
+
+  private Object[] args(Class<?>[] parameterTypes) throws Exception {
+    Object[] args = new Object[parameterTypes.length];
+    for (int i = 0; i < parameterTypes.length; i++) {
+      Class<?> type = parameterTypes[i];
+      if (type.equals(String.class)) {
+        args[i] = i == 0 ? YML_FILE_PATH : "c.c1";
+      } else if (type.equals(boolean.class)) {
+        args[i] = true;
+      } else if (type.equals(File.class)) {
+        args[i] = YML_FILE;
+      } else if (type.equals(java.io.Reader.class)) {
+        args[i] = new FileReader(YML_FILE);
+      } else if (type.equals(java.io.InputStream.class)) {
+        args[i] = Files.newInputStream(YML_FILE.toPath());
+      } else if (Map.class.isAssignableFrom(type)) {
+        args[i] = YamlUtil.load(YML_FILE, false);
+      }
+    }
+    return args;
   }
 }

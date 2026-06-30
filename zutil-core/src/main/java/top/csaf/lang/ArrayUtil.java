@@ -869,7 +869,21 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留第一个重复元素
    */
   public static int[] deduplicate(@NonNull final int[] array) {
-    return (int[]) deduplicate((Object) array);
+    int[] newArr = new int[array.length];
+    int x = 0;
+    for (int i = 0, l = array.length; i < l; i++) {
+      int j = 0;
+      for (; j < i; j++) {
+        if (array[i] == array[j]) {
+          break;
+        }
+      }
+      if (i == j) {
+        newArr[x] = array[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -879,7 +893,21 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留第一个重复元素
    */
   public static long[] deduplicate(@NonNull final long[] array) {
-    return (long[]) deduplicate((Object) array);
+    long[] newArr = new long[array.length];
+    int x = 0;
+    for (int i = 0, l = array.length; i < l; i++) {
+      int j = 0;
+      for (; j < i; j++) {
+        if (array[i] == array[j]) {
+          break;
+        }
+      }
+      if (i == j) {
+        newArr[x] = array[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -889,7 +917,21 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留第一个重复元素
    */
   public static double[] deduplicate(@NonNull final double[] array) {
-    return (double[]) deduplicate((Object) array);
+    double[] newArr = new double[array.length];
+    int x = 0;
+    for (int i = 0, l = array.length; i < l; i++) {
+      int j = 0;
+      for (; j < i; j++) {
+        if (Double.compare(array[i], array[j]) == 0) {
+          break;
+        }
+      }
+      if (i == j) {
+        newArr[x] = array[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -899,7 +941,21 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留第一个重复元素
    */
   public static float[] deduplicate(@NonNull final float[] array) {
-    return (float[]) deduplicate((Object) array);
+    float[] newArr = new float[array.length];
+    int x = 0;
+    for (int i = 0, l = array.length; i < l; i++) {
+      int j = 0;
+      for (; j < i; j++) {
+        if (Float.compare(array[i], array[j]) == 0) {
+          break;
+        }
+      }
+      if (i == j) {
+        newArr[x] = array[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -909,7 +965,21 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留第一个重复元素
    */
   public static char[] deduplicate(@NonNull final char[] array) {
-    return (char[]) deduplicate((Object) array);
+    char[] newArr = new char[array.length];
+    int x = 0;
+    for (int i = 0, l = array.length; i < l; i++) {
+      int j = 0;
+      for (; j < i; j++) {
+        if (array[i] == array[j]) {
+          break;
+        }
+      }
+      if (i == j) {
+        newArr[x] = array[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -919,7 +989,21 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留第一个重复元素
    */
   public static byte[] deduplicate(@NonNull final byte[] array) {
-    return (byte[]) deduplicate((Object) array);
+    byte[] newArr = new byte[array.length];
+    int x = 0;
+    for (int i = 0, l = array.length; i < l; i++) {
+      int j = 0;
+      for (; j < i; j++) {
+        if (array[i] == array[j]) {
+          break;
+        }
+      }
+      if (i == j) {
+        newArr[x] = array[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -929,7 +1013,28 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留第一个重复元素
    */
   public static boolean[] deduplicate(@NonNull final boolean[] array) {
-    return (boolean[]) deduplicate((Object) array);
+    boolean[] newArr = new boolean[Math.min(array.length, 2)];
+    int x = 0;
+    boolean hasTrue = false;
+    boolean hasFalse = false;
+    for (boolean item : array) {
+      if (item) {
+        if (hasTrue) {
+          continue;
+        }
+        hasTrue = true;
+      } else {
+        if (hasFalse) {
+          continue;
+        }
+        hasFalse = true;
+      }
+      if (x < newArr.length) {
+        newArr[x] = item;
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -939,7 +1044,21 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留第一个重复元素
    */
   public static short[] deduplicate(@NonNull final short[] array) {
-    return (short[]) deduplicate((Object) array);
+    short[] newArr = new short[array.length];
+    int x = 0;
+    for (int i = 0, l = array.length; i < l; i++) {
+      int j = 0;
+      for (; j < i; j++) {
+        if (array[i] == array[j]) {
+          break;
+        }
+      }
+      if (i == j) {
+        newArr[x] = array[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -987,7 +1106,7 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
       }
     }
     // 声明需要返回的数组，这个才是去重后的数组
-    Object[] newArr = new Object[t];
+    Object[] newArr = (Object[]) Array.newInstance(array1.getClass().getComponentType(), t);
     // 用 arraycopy 方法将刚才去重的数组拷贝到新数组并返回
     System.arraycopy(tempArr, 0, newArr, 0, t);
     return newArr;
@@ -1000,7 +1119,21 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留最后一个重复元素
    */
   public static int[] deduplicatePreceding(@NonNull final int[] array) {
-    return (int[]) deduplicatePreceding((Object) array);
+    int[] newArr = new int[array.length];
+    int x = 0;
+    for (int i = 0, l = array.length; i < l; i++) {
+      int j = i + 1;
+      for (; j < l; j++) {
+        if (array[i] == array[j]) {
+          break;
+        }
+      }
+      if (j == l) {
+        newArr[x] = array[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1010,7 +1143,21 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留最后一个重复元素
    */
   public static long[] deduplicatePreceding(@NonNull final long[] array) {
-    return (long[]) deduplicatePreceding((Object) array);
+    long[] newArr = new long[array.length];
+    int x = 0;
+    for (int i = 0, l = array.length; i < l; i++) {
+      int j = i + 1;
+      for (; j < l; j++) {
+        if (array[i] == array[j]) {
+          break;
+        }
+      }
+      if (j == l) {
+        newArr[x] = array[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1020,7 +1167,21 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留最后一个重复元素
    */
   public static double[] deduplicatePreceding(@NonNull final double[] array) {
-    return (double[]) deduplicatePreceding((Object) array);
+    double[] newArr = new double[array.length];
+    int x = 0;
+    for (int i = 0, l = array.length; i < l; i++) {
+      int j = i + 1;
+      for (; j < l; j++) {
+        if (Double.compare(array[i], array[j]) == 0) {
+          break;
+        }
+      }
+      if (j == l) {
+        newArr[x] = array[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1030,7 +1191,21 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留最后一个重复元素
    */
   public static float[] deduplicatePreceding(@NonNull final float[] array) {
-    return (float[]) deduplicatePreceding((Object) array);
+    float[] newArr = new float[array.length];
+    int x = 0;
+    for (int i = 0, l = array.length; i < l; i++) {
+      int j = i + 1;
+      for (; j < l; j++) {
+        if (Float.compare(array[i], array[j]) == 0) {
+          break;
+        }
+      }
+      if (j == l) {
+        newArr[x] = array[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1040,7 +1215,21 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留最后一个重复元素
    */
   public static char[] deduplicatePreceding(@NonNull final char[] array) {
-    return (char[]) deduplicatePreceding((Object) array);
+    char[] newArr = new char[array.length];
+    int x = 0;
+    for (int i = 0, l = array.length; i < l; i++) {
+      int j = i + 1;
+      for (; j < l; j++) {
+        if (array[i] == array[j]) {
+          break;
+        }
+      }
+      if (j == l) {
+        newArr[x] = array[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1050,7 +1239,21 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留最后一个重复元素
    */
   public static byte[] deduplicatePreceding(@NonNull final byte[] array) {
-    return (byte[]) deduplicatePreceding((Object) array);
+    byte[] newArr = new byte[array.length];
+    int x = 0;
+    for (int i = 0, l = array.length; i < l; i++) {
+      int j = i + 1;
+      for (; j < l; j++) {
+        if (array[i] == array[j]) {
+          break;
+        }
+      }
+      if (j == l) {
+        newArr[x] = array[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1060,7 +1263,28 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留最后一个重复元素
    */
   public static boolean[] deduplicatePreceding(@NonNull final boolean[] array) {
-    return (boolean[]) deduplicatePreceding((Object) array);
+    boolean[] newArr = new boolean[Math.min(array.length, 2)];
+    int x = newArr.length;
+    boolean hasTrue = false;
+    boolean hasFalse = false;
+    for (int i = array.length - 1; i >= 0; i--) {
+      boolean item = array[i];
+      if (item) {
+        if (hasTrue) {
+          continue;
+        }
+        hasTrue = true;
+      } else {
+        if (hasFalse) {
+          continue;
+        }
+        hasFalse = true;
+      }
+      if (x > 0) {
+        newArr[--x] = item;
+      }
+    }
+    return Arrays.copyOfRange(newArr, x, newArr.length);
   }
 
   /**
@@ -1070,7 +1294,21 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，保留最后一个重复元素
    */
   public static short[] deduplicatePreceding(@NonNull final short[] array) {
-    return (short[]) deduplicatePreceding((Object) array);
+    short[] newArr = new short[array.length];
+    int x = 0;
+    for (int i = 0, l = array.length; i < l; i++) {
+      int j = i + 1;
+      for (; j < l; j++) {
+        if (array[i] == array[j]) {
+          break;
+        }
+      }
+      if (j == l) {
+        newArr[x] = array[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1092,7 +1330,7 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    */
   public static Object deduplicateReverse(@NonNull final Object array) {
     Set<Object> treeSet = new TreeSet<>(Arrays.asList((Object[]) array)).descendingSet();
-    return new ArrayList<>(treeSet).toArray(new Object[treeSet.size()]);
+    return new ArrayList<>(treeSet).toArray((Object[]) Array.newInstance(array.getClass().getComponentType(), treeSet.size()));
   }
 
   /**
@@ -1102,7 +1340,17 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，倒序
    */
   public static int[] deduplicateReverse(@NonNull final int[] array) {
-    return (int[]) deduplicateReverse((Object) array);
+    int[] sorted = array.clone();
+    Arrays.sort(sorted);
+    int[] newArr = new int[sorted.length];
+    int x = 0;
+    for (int i = sorted.length - 1; i >= 0; i--) {
+      if (i == sorted.length - 1 || sorted[i] != sorted[i + 1]) {
+        newArr[x] = sorted[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1112,7 +1360,17 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，倒序
    */
   public static long[] deduplicateReverse(@NonNull final long[] array) {
-    return (long[]) deduplicateReverse((Object) array);
+    long[] sorted = array.clone();
+    Arrays.sort(sorted);
+    long[] newArr = new long[sorted.length];
+    int x = 0;
+    for (int i = sorted.length - 1; i >= 0; i--) {
+      if (i == sorted.length - 1 || sorted[i] != sorted[i + 1]) {
+        newArr[x] = sorted[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1122,7 +1380,17 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，倒序
    */
   public static double[] deduplicateReverse(@NonNull final double[] array) {
-    return (double[]) deduplicateReverse((Object) array);
+    double[] sorted = array.clone();
+    Arrays.sort(sorted);
+    double[] newArr = new double[sorted.length];
+    int x = 0;
+    for (int i = sorted.length - 1; i >= 0; i--) {
+      if (i == sorted.length - 1 || Double.compare(sorted[i], sorted[i + 1]) != 0) {
+        newArr[x] = sorted[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1132,7 +1400,17 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，倒序
    */
   public static float[] deduplicateReverse(@NonNull final float[] array) {
-    return (float[]) deduplicateReverse((Object) array);
+    float[] sorted = array.clone();
+    Arrays.sort(sorted);
+    float[] newArr = new float[sorted.length];
+    int x = 0;
+    for (int i = sorted.length - 1; i >= 0; i--) {
+      if (i == sorted.length - 1 || Float.compare(sorted[i], sorted[i + 1]) != 0) {
+        newArr[x] = sorted[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1142,7 +1420,17 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，倒序
    */
   public static char[] deduplicateReverse(@NonNull final char[] array) {
-    return (char[]) deduplicateReverse((Object) array);
+    char[] sorted = array.clone();
+    Arrays.sort(sorted);
+    char[] newArr = new char[sorted.length];
+    int x = 0;
+    for (int i = sorted.length - 1; i >= 0; i--) {
+      if (i == sorted.length - 1 || sorted[i] != sorted[i + 1]) {
+        newArr[x] = sorted[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1152,7 +1440,17 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，倒序
    */
   public static byte[] deduplicateReverse(@NonNull final byte[] array) {
-    return (byte[]) deduplicateReverse((Object) array);
+    byte[] sorted = array.clone();
+    Arrays.sort(sorted);
+    byte[] newArr = new byte[sorted.length];
+    int x = 0;
+    for (int i = sorted.length - 1; i >= 0; i--) {
+      if (i == sorted.length - 1 || sorted[i] != sorted[i + 1]) {
+        newArr[x] = sorted[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1162,7 +1460,28 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，倒序
    */
   public static boolean[] deduplicateReverse(@NonNull final boolean[] array) {
-    return (boolean[]) deduplicateReverse((Object) array);
+    boolean hasTrue = false;
+    boolean hasFalse = false;
+    for (boolean item : array) {
+      if (item) {
+        hasTrue = true;
+      } else {
+        hasFalse = true;
+      }
+      if (hasTrue && hasFalse) {
+        break;
+      }
+    }
+    if (hasTrue && hasFalse) {
+      return new boolean[]{true, false};
+    }
+    if (hasTrue) {
+      return new boolean[]{true};
+    }
+    if (hasFalse) {
+      return new boolean[]{false};
+    }
+    return new boolean[]{};
   }
 
   /**
@@ -1172,7 +1491,17 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，倒序
    */
   public static short[] deduplicateReverse(@NonNull final short[] array) {
-    return (short[]) deduplicateReverse((Object) array);
+    short[] sorted = array.clone();
+    Arrays.sort(sorted);
+    short[] newArr = new short[sorted.length];
+    int x = 0;
+    for (int i = sorted.length - 1; i >= 0; i--) {
+      if (i == sorted.length - 1 || sorted[i] != sorted[i + 1]) {
+        newArr[x] = sorted[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1194,13 +1523,18 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    */
   public static Object deduplicateHashSort(@NonNull final Object array) {
     Map<Object, Object> map = new HashMap<>();
-    for (Object item : (Object[]) array) {
+    Object[] array1 = (Object[]) array;
+    Object[] newArr = (Object[]) Array.newInstance(array1.getClass().getComponentType(), array1.length);
+    int x = 0;
+    for (Object item : array1) {
       if (map.containsKey(item)) {
         continue;
       }
       map.put(item, item);
+      newArr[x] = item;
+      x++;
     }
-    return new ArrayList<>(map.values()).toArray(new Object[0]);
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1210,7 +1544,17 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，hash 排序
    */
   public static int[] deduplicateHashSort(@NonNull final int[] array) {
-    return (int[]) deduplicateHashSort((Object) array);
+    int[] sorted = array.clone();
+    Arrays.sort(sorted);
+    int[] newArr = new int[sorted.length];
+    int x = 0;
+    for (int i = 0; i < sorted.length; i++) {
+      if (i == 0 || sorted[i] != sorted[i - 1]) {
+        newArr[x] = sorted[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1220,7 +1564,17 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，hash 排序
    */
   public static long[] deduplicateHashSort(@NonNull final long[] array) {
-    return (long[]) deduplicateHashSort((Object) array);
+    long[] sorted = array.clone();
+    Arrays.sort(sorted);
+    long[] newArr = new long[sorted.length];
+    int x = 0;
+    for (int i = 0; i < sorted.length; i++) {
+      if (i == 0 || sorted[i] != sorted[i - 1]) {
+        newArr[x] = sorted[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1230,7 +1584,17 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，hash 排序
    */
   public static double[] deduplicateHashSort(@NonNull final double[] array) {
-    return (double[]) deduplicateHashSort((Object) array);
+    double[] sorted = array.clone();
+    Arrays.sort(sorted);
+    double[] newArr = new double[sorted.length];
+    int x = 0;
+    for (int i = 0; i < sorted.length; i++) {
+      if (i == 0 || Double.compare(sorted[i], sorted[i - 1]) != 0) {
+        newArr[x] = sorted[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1240,7 +1604,17 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，hash 排序
    */
   public static float[] deduplicateHashSort(@NonNull final float[] array) {
-    return (float[]) deduplicateHashSort((Object) array);
+    float[] sorted = array.clone();
+    Arrays.sort(sorted);
+    float[] newArr = new float[sorted.length];
+    int x = 0;
+    for (int i = 0; i < sorted.length; i++) {
+      if (i == 0 || Float.compare(sorted[i], sorted[i - 1]) != 0) {
+        newArr[x] = sorted[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1250,7 +1624,17 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，hash 排序
    */
   public static char[] deduplicateHashSort(@NonNull final char[] array) {
-    return (char[]) deduplicateHashSort((Object) array);
+    char[] sorted = array.clone();
+    Arrays.sort(sorted);
+    char[] newArr = new char[sorted.length];
+    int x = 0;
+    for (int i = 0; i < sorted.length; i++) {
+      if (i == 0 || sorted[i] != sorted[i - 1]) {
+        newArr[x] = sorted[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1260,7 +1644,17 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，hash 排序
    */
   public static byte[] deduplicateHashSort(@NonNull final byte[] array) {
-    return (byte[]) deduplicateHashSort((Object) array);
+    byte[] sorted = array.clone();
+    Arrays.sort(sorted);
+    byte[] newArr = new byte[sorted.length];
+    int x = 0;
+    for (int i = 0; i < sorted.length; i++) {
+      if (i == 0 || sorted[i] != sorted[i - 1]) {
+        newArr[x] = sorted[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**
@@ -1270,7 +1664,28 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，hash 排序
    */
   public static boolean[] deduplicateHashSort(@NonNull final boolean[] array) {
-    return (boolean[]) deduplicateHashSort((Object) array);
+    boolean hasTrue = false;
+    boolean hasFalse = false;
+    for (boolean item : array) {
+      if (item) {
+        hasTrue = true;
+      } else {
+        hasFalse = true;
+      }
+      if (hasTrue && hasFalse) {
+        break;
+      }
+    }
+    if (hasFalse && hasTrue) {
+      return new boolean[]{false, true};
+    }
+    if (hasFalse) {
+      return new boolean[]{false};
+    }
+    if (hasTrue) {
+      return new boolean[]{true};
+    }
+    return new boolean[]{};
   }
 
   /**
@@ -1280,7 +1695,17 @@ public class ArrayUtil extends org.apache.commons.lang3.ArrayUtils {
    * @return 去重后的数组，hash 排序
    */
   public static short[] deduplicateHashSort(@NonNull final short[] array) {
-    return (short[]) deduplicateHashSort((Object) array);
+    short[] sorted = array.clone();
+    Arrays.sort(sorted);
+    short[] newArr = new short[sorted.length];
+    int x = 0;
+    for (int i = 0; i < sorted.length; i++) {
+      if (i == 0 || sorted[i] != sorted[i - 1]) {
+        newArr[x] = sorted[i];
+        x++;
+      }
+    }
+    return Arrays.copyOf(newArr, x);
   }
 
   /**

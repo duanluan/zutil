@@ -39,21 +39,21 @@ public class AutoJsonMsgConvertor implements MsgConvertor, ConvertProvider {
   static {
     JsonProvider provider = JsonProvider.NONE;
     try {
-      Class.forName("com.alibaba.fastjson2.JSON");
+      Class.forName("com.alibaba.fastjson2.JSON", true, AutoJsonMsgConvertor.class.getClassLoader());
       provider = JsonProvider.FASTJSON2;
-    } catch (ClassNotFoundException e1) {
+    } catch (Throwable e1) {
       try {
-        Class.forName("com.alibaba.fastjson.JSON");
+        Class.forName("com.alibaba.fastjson.JSON", true, AutoJsonMsgConvertor.class.getClassLoader());
         provider = JsonProvider.FASTJSON_V1;
-      } catch (ClassNotFoundException e2) {
+      } catch (Throwable e2) {
         try {
-          Class<?> mapperClass = Class.forName("com.fasterxml.jackson.databind.ObjectMapper");
+          Class<?> mapperClass = Class.forName("com.fasterxml.jackson.databind.ObjectMapper", true, AutoJsonMsgConvertor.class.getClassLoader());
           jacksonObjectMapper = mapperClass.getConstructor().newInstance();
           // 可以在这里配置 Jackson，如忽略未知属性等
           provider = JsonProvider.JACKSON;
         } catch (Exception e3) {
           try {
-            Class<?> gsonClass = Class.forName("com.google.code.gson.Gson");
+            Class<?> gsonClass = Class.forName("com.google.gson.Gson", true, AutoJsonMsgConvertor.class.getClassLoader());
             gsonInstance = gsonClass.getConstructor().newInstance();
             provider = JsonProvider.GSON;
           } catch (Exception e4) {

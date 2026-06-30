@@ -20,8 +20,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import top.csaf.http.constant.HeaderConst;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -275,6 +277,40 @@ class HttpUtilTest {
     HttpUtil.post(baseUrl, "application/json", new HashMap<>());
     RecordedRequest request = server.takeRequest();
     assertTrue(request.getHeader("Content-Type").contains("application/json"));
+  }
+
+  @Test
+  @DisplayName("覆盖: sync 和 bodyToResult 额外分支")
+  void testAdditionalBranches() throws Exception {
+    server.enqueue(new MockResponse().setBody("{}"));
+    HttpUtil.sync("GET", baseUrl, null, java.util.Collections.singletonMap("a", (Object) 1), null, String.class);
+    assertEquals(HeaderConst.USER_AGENT_X, server.takeRequest().getHeader("User-Agent"));
+
+    assertThrows(NullPointerException.class, () -> HttpUtil.sync(null, baseUrl, null, null, null, null));
+
+    server.enqueue(new MockResponse().setBody("{}"));
+    HttpUtil.sync("DELETE", baseUrl, null, java.util.Collections.singletonMap("a", (Object) 1), null, String.class);
+    assertTrue(server.takeRequest().getPath().contains("a=1"));
+
+    server.enqueue(new MockResponse().setBody("{}"));
+    HttpUtil.sync("PATCH", baseUrl, null, java.util.Collections.singletonMap("a", (Object) 1), null, String.class);
+    assertTrue(server.takeRequest().getBody().readUtf8().contains("a=1"));
+
+    server.enqueue(new MockResponse());
+    HttpResult headResult = (HttpResult) HttpUtil.sync("HEAD", baseUrl, null, java.util.Collections.singletonMap("a", (Object) 1), null, null);
+    assertNotNull(headResult);
+    headResult.close();
+
+    Map<String, String> headers = new HashMap<>();
+    headers.put(HeaderConst.USER_AGENT, "custom");
+    server.enqueue(new MockResponse().setBody("{}"));
+    assertNotNull(HttpUtil.sync("GET", baseUrl, null, null, headers, String.class));
+    assertEquals(HeaderConst.USER_AGENT_X, server.takeRequest().getHeader(HeaderConst.USER_AGENT));
+
+    Method bodyToResult = HttpUtil.class.getDeclaredMethod("bodyToResult", String.class, Class.class);
+    bodyToResult.setAccessible(true);
+    assertNull(bodyToResult.invoke(null, null, TestBean.class));
+    assertNull(bodyToResult.invoke(null, "not json", JsonNode.class));
   }
 
   @Data

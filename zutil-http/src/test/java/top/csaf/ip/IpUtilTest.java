@@ -66,6 +66,7 @@ class IpUtilTest {
     assertTrue(IpUtil.isIpv6("2001:db8::1"));
     assertFalse(IpUtil.isValidIpv6("2001:db8::gg"));
     assertFalse(IpUtil.isValidIpv6("2001:::1"));
+    assertFalse(IpUtil.isValidIpv6("[::1"));
   }
 
   /**
@@ -146,6 +147,7 @@ class IpUtilTest {
     assertTrue(IpUtil.isInCidr("192.168.1.10", "192.168.1.0/24"));
     assertFalse(IpUtil.isInCidr("192.168.2.10", "192.168.1.0/24"));
     assertTrue(IpUtil.isInCidr("2001:db8::1", "2001:db8::/32"));
+    assertTrue(IpUtil.isInCidr("1.1.1.1", "1.1.1.1/32"));
     assertFalse(IpUtil.isInCidr("2001:db9::1", "2001:db8::/32"));
     assertFalse(IpUtil.isInCidr("999.1.1.1", "192.168.1.0/24"));
     assertFalse(IpUtil.isInCidr("2001:db8::1", "192.168.1.0/24"));
@@ -153,7 +155,13 @@ class IpUtilTest {
 
     assertTrue(IpUtil.isInRange("10.0.0.5", "10.0.0.1", "10.0.0.10"));
     assertFalse(IpUtil.isInRange("10.0.0.20", "10.0.0.1", "10.0.0.10"));
+    assertFalse(IpUtil.isInRange("2001:db8::3", "2001:db8::1", "2001:db8::2"));
     assertTrue(IpUtil.isInRange("2001:db8::1", "2001:db8::1", "2001:db8::2"));
+    assertTrue(IpUtil.isInRange("10.0.0.1", "10.0.0.1", "10.0.0.10"));
+    assertTrue(IpUtil.isInRange("10.0.0.10", "10.0.0.1", "10.0.0.10"));
+    assertFalse(IpUtil.isInRange("10.0.0.0", "10.0.0.1", "10.0.0.10"));
+    assertTrue(IpUtil.isInRange("2001:db8::2", "2001:db8::1", "2001:db8::2"));
+    assertFalse(IpUtil.isInRange("2001:db8::", "2001:db8::1", "2001:db8::2"));
     assertThrows(IllegalArgumentException.class, () -> IpUtil.isInRange("10.0.0.5", "10.0.0.10", "10.0.0.1"));
     assertThrows(IllegalArgumentException.class, () -> IpUtil.isInRange("2001:db8::2", "2001:db8::2", "2001:db8::1"));
     assertThrows(IllegalArgumentException.class, () -> IpUtil.isInRange("1.1.1.1", "2001:db8::1", "2001:db8::2"));
@@ -171,8 +179,11 @@ class IpUtilTest {
     assertThrows(IllegalArgumentException.class, () -> IpUtil.isInCidr("1.1.1.1", "1.1.1.1/"));
     assertThrows(IllegalArgumentException.class, () -> IpUtil.isInCidr("1.1.1.1", "1.1.1.1/abc"));
     assertThrows(IllegalArgumentException.class, () -> IpUtil.isInCidr("1.1.1.1", "1.1.1.1/33"));
+    assertThrows(IllegalArgumentException.class, () -> IpUtil.isInCidr("1.1.1.1", "1.1.1.1/-1"));
     assertThrows(IllegalArgumentException.class, () -> IpUtil.isInCidr("1.1.1.1", "2001:db8::/129"));
+    assertThrows(IllegalArgumentException.class, () -> IpUtil.isInCidr("1.1.1.1", "2001:db8::/-1"));
     assertThrows(IllegalArgumentException.class, () -> IpUtil.isInCidr("1.1.1.1", "invalid/24"));
+    assertThrows(IllegalArgumentException.class, () -> IpUtil.isInCidr("1.1.1.1", "2001:db8::/abc"));
   }
 
   /**
@@ -183,6 +194,10 @@ class IpUtilTest {
     assertTrue(IpUtil.isPrivateIpv4("10.0.0.1"));
     assertFalse(IpUtil.isPrivateIpv4("8.8.8.8"));
     assertFalse(IpUtil.isPrivateIpv4("999.1.1.1"));
+    assertFalse(IpUtil.isPrivateIpv4("172.15.255.255"));
+    assertTrue(IpUtil.isPrivateIpv4("172.16.0.1"));
+    assertTrue(IpUtil.isPrivateIpv4("192.168.1.1"));
+    assertFalse(IpUtil.isCarrierNatIpv4("100.63.255.255"));
     assertTrue(IpUtil.isCarrierNatIpv4("100.64.0.1"));
     assertFalse(IpUtil.isCarrierNatIpv4("8.8.8.8"));
     assertFalse(IpUtil.isCarrierNatIpv4("999.1.1.1"));
@@ -192,6 +207,7 @@ class IpUtilTest {
     assertFalse(IpUtil.isBroadcastIpv4("999.1.1.1"));
     assertTrue(IpUtil.isSiteLocal("10.0.0.1"));
     assertTrue(IpUtil.isReservedIpv4("0.0.0.1"));
+    assertFalse(IpUtil.isReservedIpv4("1.0.0.0"));
     assertTrue(IpUtil.isReservedIpv4("240.0.0.1"));
     assertFalse(IpUtil.isReservedIpv4("8.8.8.8"));
     assertFalse(IpUtil.isReservedIpv4("999.1.1.1"));
@@ -708,6 +724,11 @@ class IpUtilTest {
     assertEquals(0L, ((Long) ReflectionTestUtils.invokeMethod(IpUtil.class, "prefixToMaskLong", 0)).longValue());
     assertEquals(0xFFFFFFFFL,
         ((Long) ReflectionTestUtils.invokeMethod(IpUtil.class, "prefixToMaskLong", 32)).longValue());
+  }
+
+  @Test
+  void testConstructor() {
+    assertNotNull(new IpUtil());
   }
 
   private static <T> Enumeration<T> enumeration(T... items) {

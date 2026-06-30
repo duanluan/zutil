@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import top.csaf.charset.StandardCharsets;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
@@ -315,8 +316,12 @@ class UrlUtilTest {
     toQueryString.setAccessible(true);
     assertEquals("", toQueryString.invoke(null, new HashMap<>(), StandardCharsets.UTF_8, true));
 
+    List<String> decodedPairs = new ArrayList<>();
     Method parseQuery = UrlUtil.class.getDeclaredMethod("parseQuery", String.class, Charset.class, boolean.class, java.util.function.BiConsumer.class);
     parseQuery.setAccessible(true);
+    parseQuery.invoke(null, "x=a+b", null, true,
+      (java.util.function.BiConsumer<String, String>) (k, v) -> decodedPairs.add(k + "=" + v));
+    assertEquals(Arrays.asList("x=a b"), decodedPairs);
     parseQuery.invoke(null, "   ", StandardCharsets.UTF_8, false, (java.util.function.BiConsumer<String, String>) (k, v) -> {
     });
 
@@ -332,7 +337,46 @@ class UrlUtilTest {
   void testNullInputs() {
     assertThrows(NullPointerException.class, () -> UrlUtil.urlEncode((CharSequence) null));
     assertThrows(NullPointerException.class, () -> UrlUtil.urlDecode((CharSequence) null));
+    assertThrows(NullPointerException.class, () -> UrlUtil.urlEncode((CharSequence) null, StandardCharsets.UTF_8));
+    assertThrows(NullPointerException.class, () -> UrlUtil.urlDecode((CharSequence) null, StandardCharsets.UTF_8));
     assertThrows(NullPointerException.class, () -> UrlUtil.urlEncode("a", null));
     assertThrows(NullPointerException.class, () -> UrlUtil.urlDecode("a", null));
+  }
+
+  /**
+   * 验证 @NonNull 保护分支。
+   */
+  @Test
+  void testAdditionalNullInputs() {
+    Map<String, Object> params = new HashMap<>();
+    assertThrows(NullPointerException.class, () -> UrlUtil.toUrlParams("?", params, null));
+    assertThrows(NullPointerException.class, () -> UrlUtil.toUrlParams(params, null));
+    assertThrows(NullPointerException.class, () -> UrlUtil.appendParams("http://localhost", params, null));
+    assertThrows(NullPointerException.class, () -> UrlUtil.appendParams(null, params));
+    assertThrows(NullPointerException.class, () -> UrlUtil.appendParams(null, params, StandardCharsets.UTF_8));
+    assertThrows(NullPointerException.class, () -> UrlUtil.toMapParams("?", "?a=1", null));
+    assertThrows(NullPointerException.class, () -> UrlUtil.toMapParams("?a=1", (Charset) null));
+    assertThrows(NullPointerException.class, () -> UrlUtil.toMultiMapParams("?", "?a=1", null));
+    assertThrows(NullPointerException.class, () -> UrlUtil.toMultiMapParams("?a=1", (Charset) null));
+  }
+
+  /**
+   * 验证默认值与解析分支。
+   */
+  @Test
+  void testAdditionalBranchInputs() {
+    assertEquals("?a=1", UrlUtil.toUrlParams(null, java.util.Collections.singletonMap("a", (Object) 1), StandardCharsets.UTF_8));
+    assertEquals("http://localhost/api", UrlUtil.appendParams("http://localhost/api", new HashMap<>()));
+    Map<String, String> parsed = UrlUtil.toMapParams("?", "http://localhost?x=1#frag", StandardCharsets.UTF_8);
+    assertEquals("1", parsed.get("x"));
+    Map<String, List<String>> map = UrlUtil.toMultiMapParams("?", "http://localhost?tag=a+b#frag", StandardCharsets.UTF_8);
+    assertEquals(Arrays.asList("a b"), map.get("tag"));
+  }
+
+  @Test
+  void testConstructor() throws Exception {
+    Constructor<UrlUtil> constructor = UrlUtil.class.getDeclaredConstructor();
+    constructor.setAccessible(true);
+    assertNotNull(constructor.newInstance());
   }
 }

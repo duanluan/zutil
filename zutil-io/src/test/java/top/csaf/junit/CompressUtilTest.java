@@ -1,6 +1,7 @@
 package top.csaf.junit;
 
 import com.github.junrar.Archive;
+import com.github.junrar.exception.UnsupportedRarV5Exception;
 import com.github.junrar.rarfile.FileHeader;
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
@@ -179,6 +180,8 @@ class CompressUtilTest {
       new Class<?>[]{String.class, Format.class}, ".gz", Format.GZ));
     assertEquals("..gz.out", invokePrivate("resolveSingleOutputName",
       new Class<?>[]{String.class, Format.class}, "..gz", Format.GZ));
+    assertEquals("...gz.out", invokePrivate("resolveSingleOutputName",
+      new Class<?>[]{String.class, Format.class}, "...gz", Format.GZ));
     assertEquals("data.out", invokePrivate("resolveSingleOutputName",
       new Class<?>[]{String.class, Format.class}, "data", Format.TAR));
   }
@@ -521,6 +524,64 @@ class CompressUtilTest {
   }
 
   /**
+   * 使用假的 rar 命令覆盖外部命令成功、覆盖旧目标和退出码失败分支。
+   */
+  @Test
+  @DisplayName("RAR fake command success and exit code failure")
+  void testCompressRarWithFakeCommand() throws Exception {
+    String key = "zutil.rar.command";
+    String previous = System.getProperty(key);
+    try {
+      Path sourceDir = createSampleDir(tempDir.resolve("fake-rar-src"));
+      Path existing = tempDir.resolve("fake-existing.rar");
+      writeText(existing, "existing");
+      Path successCommand = createFakeRarCommand("fake-rar-success", "#!/bin/sh\nprintf 'fake output\\n'\ntarget=\"$4\"\nprintf 'fake-rar' > \"$target\"\nexit 0\n");
+      System.setProperty(key, successCommand.toString());
+
+      CompressUtil.compress(sourceDir, existing, CompressOptions.builder().includeRootDir(false).build());
+      assertEquals("fake-rar", readText(existing));
+
+      Path failCommand = createFakeRarCommand("fake-rar-fail", "#!/bin/sh\nprintf 'bad output\\n'\nexit 7\n");
+      System.setProperty(key, failCommand.toString());
+      RuntimeException thrown = assertThrows(RuntimeException.class,
+        () -> CompressUtil.compress(sourceDir, tempDir.resolve("fake-fail.rar"), CompressOptions.builder().includeRootDir(false).build()));
+      assertTrue(thrown.getMessage().contains("command exited with code 7"));
+      assertTrue(thrown.getMessage().contains("bad output"));
+
+      Path failNoOutputCommand = createFakeRarCommand("fake-rar-fail-empty", "#!/bin/sh\nexit 9\n");
+      System.setProperty(key, failNoOutputCommand.toString());
+      RuntimeException noOutputThrown = assertThrows(RuntimeException.class,
+        () -> CompressUtil.compress(sourceDir, tempDir.resolve("fake-fail-empty.rar"), CompressOptions.builder().includeRootDir(false).build()));
+      assertTrue(noOutputThrown.getMessage().contains("command exited with code 9"));
+      assertFalse(noOutputThrown.getMessage().contains("output:"));
+
+      Path commandDir = Files.createDirectories(tempDir.resolve("rar-command-dir"));
+      System.setProperty(key, commandDir.toString());
+      RuntimeException ioThrown = assertThrows(RuntimeException.class,
+        () -> CompressUtil.compress(sourceDir, tempDir.resolve("fake-io.rar"), CompressOptions.builder().includeRootDir(false).build()));
+      assertTrue(ioThrown.getMessage().contains("Compress rar failed"));
+
+      System.setProperty(key, successCommand.toString());
+      Path reflectTarget = tempDir.resolve("reflect-false.rar");
+      writeText(reflectTarget, "old");
+      invokePrivateVoid("compressRar", new Class<?>[]{List.class, Path.class, CompressOptions.class},
+        Collections.singletonList(sourceDir), reflectTarget, CompressOptions.builder()
+          .includeRootDir(false)
+          .preserveLastModified(false)
+          .overwrite(false)
+          .build());
+      assertEquals("fake-rar", readText(reflectTarget));
+
+    } finally {
+      if (previous == null) {
+        System.clearProperty(key);
+      } else {
+        System.setProperty(key, previous);
+      }
+    }
+  }
+
+  /**
    * overwrite=false 且目标已存在时，应直接失败而不是更新已有rar。
    */
   @Test
@@ -632,6 +693,18 @@ class CompressUtilTest {
     // 清空最后修改时间，覆盖 lastModified 为 null 的分支
     fileHeader.setLastModifiedTime(null);
     assertNull(fileHeader.getLastModifiedTime());
+
+    // null 名称条目也应被跳过，覆盖短路分支。
+    FileHeader nullNameHeader = fileHeader;
+    nullNameHeader.setFileName(null);
+    nullNameHeader.setFileNameW(null);
+    invokePrivateVoid("decompressRarEntries",
+      new Class<?>[]{List.class, Class.forName("top.csaf.io.CompressUtil$RarEntryExtractor"), Path.class, CompressOptions.class,
+        Class.forName("top.csaf.io.CompressUtil$ExtractTracker")},
+      Collections.singletonList(nullNameHeader), newRarExtractorFailProxy(Class.forName("top.csaf.io.CompressUtil$RarEntryExtractor")),
+      tempDir.resolve("rar-null-name-out"), new CompressOptions(), null);
+    fileHeader.setFileName(fileEntryName);
+    fileHeader.setFileNameW("");
 
     // 组合条目列表并准备解压器与追踪器
     List<FileHeader> testHeaders = new ArrayList<>();
@@ -1009,6 +1082,10 @@ class CompressUtilTest {
   @Test
   @DisplayName("Private helpers coverage")
   void testPrivateHelpersCoverage() throws Exception {
+    // 通过反射调用 CompressUtil 构造器
+    Constructor<CompressUtil> constructor = CompressUtil.class.getDeclaredConstructor();
+    assertNotNull(constructor.newInstance());
+
     // prepareTarget 覆盖父目录创建逻辑
     Path root = tempDir.getRoot();
     invokePrivateVoid("prepareTarget", new Class<?>[]{Path.class, CompressOptions.class}, root, new CompressOptions());
@@ -1051,6 +1128,31 @@ class CompressUtilTest {
       new Class<?>[]{Path.class, String.class, CompressOptions.class}, tempDir, "//a.txt", allowUnsafe);
     assertEquals(tempDir.resolve("a.txt").normalize(), resolved);
 
+    // resolveRarEntryPath 覆盖前导斜杠与越界分支
+    Path rarResolved = invokePrivate("resolveRarEntryPath", new Class<?>[]{Path.class, String.class}, tempDir, "//a/b.txt");
+    assertEquals(tempDir.resolve("a/b.txt").normalize(), rarResolved);
+    assertThrows(IllegalArgumentException.class,
+      () -> invokePrivate("resolveRarEntryPath", new Class<?>[]{Path.class, String.class}, tempDir, "../outside.txt"));
+
+    // RAR 命令辅助方法分支覆盖
+    List<String> rarCandidates = invokePrivate("resolveRarCommandCandidates", new Class<?>[]{});
+    assertFalse(rarCandidates.isEmpty());
+    List<String> customCandidates = new ArrayList<>();
+    invokePrivateVoid("appendRarCandidatesFromDir", new Class<?>[]{List.class, String.class}, customCandidates, "  /opt  ");
+    assertEquals(Arrays.asList("/opt\\WinRAR\\rar.exe", "/opt\\WinRAR\\Rar.exe", "/opt\\WinRAR\\WinRAR.exe"), customCandidates);
+    invokePrivateVoid("appendRarCandidatesFromDir", new Class<?>[]{List.class, String.class}, customCandidates, "   ");
+    assertEquals(3, customCandidates.size());
+    assertFalse((boolean) invokePrivate("isRarCommandNotFound", new Class<?>[]{IOException.class}, new IOException()));
+    assertTrue((boolean) invokePrivate("isRarCommandNotFound", new Class<?>[]{IOException.class}, new IOException("CreateProcess error=2")));
+    assertTrue((boolean) invokePrivate("isRarCommandNotFound", new Class<?>[]{IOException.class}, new IOException("No such file")));
+    assertTrue((boolean) invokePrivate("isRarCommandNotFound", new Class<?>[]{IOException.class}, new IOException("not found")));
+    assertTrue((boolean) invokePrivate("isRarCommandNotFound", new Class<?>[]{IOException.class}, new IOException("Cannot run program")));
+    assertFalse((boolean) invokePrivate("isUnsupportedRarV5", new Class<?>[]{Throwable.class}, new RuntimeException("x")));
+    assertTrue((boolean) invokePrivate("isUnsupportedRarV5", new Class<?>[]{Throwable.class},
+      new RuntimeException(new UnsupportedRarV5Exception(new IOException("rar5")))));
+    invokePrivateVoid("deleteRecursivelyQuietly", new Class<?>[]{Path.class}, (Path) null);
+    invokePrivateVoid("deleteRecursivelyQuietly", new Class<?>[]{Path.class}, tempDir.resolve("missing-dir"));
+
     // applyLastModified 的分支覆盖
     CompressOptions preserveFalse = CompressOptions.builder().preserveLastModified(false).build();
     invokePrivateVoid("applyLastModified", new Class<?>[]{Path.class, long.class, CompressOptions.class},
@@ -1077,8 +1179,65 @@ class CompressUtilTest {
       () -> invokePrivate("createXzOutputStream", new Class<?>[]{OutputStream.class, int.class}, null, 1));
 
     // millisToGzipEpochSeconds 的边界转换
+    long negative = invokePrivate("millisToGzipEpochSeconds", new Class<?>[]{long.class}, -1L);
+    assertEquals(0L, negative);
     long max = invokePrivate("millisToGzipEpochSeconds", new Class<?>[]{long.class}, Long.MAX_VALUE);
     assertEquals(0xFFFFFFFFL, max);
+
+    // gzipEpochSecondsToMillis 的溢出保护
+    long overflow = invokePrivate("gzipEpochSecondsToMillis", new Class<?>[]{long.class}, Long.MAX_VALUE);
+    assertEquals(Long.MAX_VALUE, overflow);
+  }
+
+  /**
+   * 使用反射覆盖不依赖真实外部环境的剩余辅助分支。
+   */
+  @Test
+  @DisplayName("Additional private helper branches")
+  void testAdditionalPrivateHelperBranches() throws Exception {
+    String key = "zutil.rar.command";
+    String previous = System.getProperty(key);
+    System.setProperty(key, "  custom-rar  ");
+    try {
+      assertTrue((boolean) invokePrivate("hasExplicitRarCommand", new Class<?>[]{}));
+      List<String> candidates = invokePrivate("resolveRarCommandCandidates", new Class<?>[]{});
+      assertEquals(Collections.singletonList("custom-rar"), candidates);
+      System.clearProperty(key);
+      List<String> defaultCandidates = invokePrivate("resolveRarCommandCandidates", new Class<?>[]{});
+      assertTrue(defaultCandidates.contains("rar"));
+      assertTrue(defaultCandidates.contains("/usr/bin/rar"));
+    } finally {
+      if (previous == null) {
+        System.clearProperty(key);
+      } else {
+        System.setProperty(key, previous);
+      }
+    }
+
+    IOException message = new IOException("permission denied");
+    assertFalse((boolean) invokePrivate("isRarCommandNotFound", new Class<?>[]{IOException.class}, message));
+    assertTrue((boolean) invokePrivate("isUnsupportedRarV5", new Class<?>[]{Throwable.class},
+      new IOException(new UnsupportedRarV5Exception())));
+
+    Class<?> trackerClass = Class.forName("top.csaf.io.CompressUtil$ExtractTracker");
+    Object tracker = newExtractTracker(0L, 100L, 100L);
+    OutputStream sink = new ByteArrayOutputStream();
+    OutputStream trackingOut = (OutputStream) newInnerInstance("top.csaf.io.CompressUtil$TrackingOutputStream",
+      new Class<?>[]{OutputStream.class, trackerClass}, sink, tracker);
+    trackingOut.write(new byte[]{1, 2, 3});
+
+    Path cleanup = Files.createDirectories(tempDir.resolve("cleanup"));
+    writeText(cleanup.resolve("child.txt"), "x");
+    invokePrivateVoid("deleteRecursivelyQuietly", new Class<?>[]{Path.class}, cleanup);
+    assertFalse(Files.exists(cleanup));
+  }
+
+
+  private static Path createFakeRarCommand(String name, String content) throws IOException {
+    Path command = Files.createTempFile(name, ".sh");
+    Files.write(command, content.getBytes(StandardCharsets.UTF_8));
+    assertTrue(command.toFile().setExecutable(true));
+    return command;
   }
 
   /**

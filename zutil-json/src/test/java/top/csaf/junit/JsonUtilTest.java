@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import top.csaf.json.JsonUtil;
 import top.csaf.regex.RegExUtil;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ class JsonUtilTest {
 
     // 不带特性，默认输出值为 null 的字段
     TestObject testObj = new TestObject();
+    assertTrue(JsonUtil.toJson(testObj, new JSONWriter.Feature[0]).contains("null"));
     String jsonWithNull = JsonUtil.toJson(testObj);
     // 宽松匹配：只要包含 null 字段即可
     assertTrue(jsonWithNull.contains("\"name\":null") || jsonWithNull.contains("null"), "应包含 null 值");
@@ -133,7 +135,7 @@ class JsonUtilTest {
     assertEquals("张三", map.get("name"));
 
     // 空值 key
-    String emptyVal = "a=&b=2";
+    String emptyVal = "a=&b=2&noval";
     Map map2 = JsonUtil.parseObject(JsonUtil.paramsToJson(emptyVal), Map.class);
     assertEquals("", map2.get("a"));
 
@@ -141,6 +143,11 @@ class JsonUtilTest {
     String onlyKey = "key1&key2";
     Map map3 = JsonUtil.parseObject(JsonUtil.paramsToJson(onlyKey), Map.class);
     assertEquals("", map3.get("key1"));
+
+    // 空参数片段、空 key 被忽略
+    Map map4 = JsonUtil.parseObject(JsonUtil.paramsToJson("=ignored&&c=3"), Map.class);
+    assertFalse(map4.containsKey(""));
+    assertEquals("3", map4.get("c"));
 
     // 空输入
     assertEquals("{}", JsonUtil.paramsToJson(null));
@@ -163,5 +170,29 @@ class JsonUtilTest {
     // 容错解析
     Object nonStandard = JsonUtil.parse("{'a':1}"); // 单引号
     assertInstanceOf(Map.class, nonStandard);
+  }
+
+  @DisplayName("空特性和空参分支")
+  @Test
+  void emptyFeaturesAndNullChecks() {
+    TestObject testObj = new TestObject();
+    assertTrue(JsonUtil.toJson(testObj, (JSONWriter.Feature[]) null).contains("null"));
+    assertTrue(JsonUtil.toJson(testObj, new JSONWriter.Feature[0]).contains("null"));
+    assertThrows(NullPointerException.class, () -> JsonUtil.toJson(null, JSONWriter.Feature.WriteMapNullValue));
+    assertNull(JsonUtil.parseObject("null", TestObject.class, (JSONReader.Feature[]) null));
+    assertTrue(JsonUtil.parseArray("[]", TestObject.class, (JSONReader.Feature[]) null).isEmpty());
+    assertThrows(NullPointerException.class, () -> JsonUtil.toJson(null));
+    assertThrows(NullPointerException.class, () -> JsonUtil.toJsonNoFeature(null));
+    assertThrows(NullPointerException.class, () -> JsonUtil.parseObject(null, TestObject.class));
+    assertThrows(NullPointerException.class, () -> JsonUtil.parseObject("{}", null));
+    assertThrows(NullPointerException.class, () -> JsonUtil.parseArray(null, TestObject.class));
+    assertThrows(NullPointerException.class, () -> JsonUtil.parseArray("[]", null));
+  }
+
+  @DisplayName("公共构造覆盖")
+  @Test
+  void testConstructor() throws Exception {
+    Constructor<JsonUtil> constructor = JsonUtil.class.getDeclaredConstructor();
+    assertNotNull(constructor.newInstance());
   }
 }

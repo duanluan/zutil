@@ -716,7 +716,7 @@ public class DateUtil extends org.apache.commons.lang3.time.DateUtils {
       }
     }
     if (pattern.contains("S")) {
-      long millis = epochMilli1 / DateDuration.MILLIS_1000;
+      long millis = epochMilli1;
       if (pattern.contains("S")) {
         pattern = DateRegExPattern.FRACTION_OF_SECOND3.matcher(pattern).replaceAll(String.format("%03d", millis));
       }
@@ -785,7 +785,7 @@ public class DateUtil extends org.apache.commons.lang3.time.DateUtils {
       }
     }
     if (millisSuffix != null) {
-      long millis = epochMilli / DateDuration.MILLIS_1000;
+      long millis = epochMilli;
       if (millis > 0 || !isIgnoreZero) {
         result += millis + millisSuffix;
       }
@@ -915,7 +915,10 @@ public class DateUtil extends org.apache.commons.lang3.time.DateUtils {
    * @return 时间戳（秒）
    */
   public static long toEpochSecond(@NonNull final Temporal temporal, final ZoneId zoneId) {
-    ZoneId zoneId1 = DateFeat.get(zoneId);
+    ZoneId zoneId1 = DateFeat.getLazy(zoneId);
+    if (zoneId1 == null) {
+      zoneId1 = DateFeat.getZoneId();
+    }
     if (temporal instanceof ZonedDateTime) {
       return ((ZonedDateTime) temporal).withZoneSameInstant(zoneId1).toEpochSecond();
     } else if (temporal instanceof LocalDateTime) {
@@ -938,7 +941,7 @@ public class DateUtil extends org.apache.commons.lang3.time.DateUtils {
    * @return 时间戳（秒）
    */
   public static long toEpochSecond(@NonNull final Temporal temporal) {
-    return toEpochSecond(temporal, null);
+    return toEpochSecond(temporal, DateFeat.getZoneId());
   }
 
   /**
@@ -949,7 +952,11 @@ public class DateUtil extends org.apache.commons.lang3.time.DateUtils {
    * @return 时间戳（秒）
    */
   public static long toEpochSecond(@NonNull final Date date, final ZoneId zoneId) {
-    return date.toInstant().atZone(DateFeat.get(zoneId)).toEpochSecond();
+    ZoneId zoneId1 = DateFeat.getLazy(zoneId);
+    if (zoneId1 == null) {
+      zoneId1 = DateFeat.getZoneId();
+    }
+    return date.toInstant().atZone(zoneId1).toEpochSecond();
   }
 
   /**
@@ -1066,7 +1073,11 @@ public class DateUtil extends org.apache.commons.lang3.time.DateUtils {
    * @return 时间戳（毫秒）
    */
   public static long toEpochMilli(@NonNull final Date date, final ZoneId zoneId) {
-    return date.toInstant().atZone(DateFeat.get(zoneId)).toInstant().toEpochMilli();
+    ZoneId zoneId1 = DateFeat.getLazy(zoneId);
+    if (zoneId1 == null) {
+      zoneId1 = DateFeat.getZoneId();
+    }
+    return date.toInstant().atZone(zoneId1).toInstant().toEpochMilli();
   }
 
   /**
@@ -1734,6 +1745,9 @@ public class DateUtil extends org.apache.commons.lang3.time.DateUtils {
    * @return 时间格式是否正确
    */
   public static boolean validate(final String text, final String pattern) {
+    if (StrUtil.isBlank(pattern)) {
+      return false;
+    }
     try {
       // 从 pattern 中提取出字母
       Matcher matcher = LETTER_PATTERN.matcher(pattern);
@@ -1751,7 +1765,7 @@ public class DateUtil extends org.apache.commons.lang3.time.DateUtils {
       } else {
         return parseLocalDateTime(text, pattern) != null;
       }
-    } catch (DateTimeParseException e) {
+    } catch (DateTimeException | IllegalArgumentException e) {
       return false;
     }
   }

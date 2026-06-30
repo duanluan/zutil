@@ -1,13 +1,5 @@
-<?xml version="1.0" encoding="gb2312"?>
+<?xml version="1.0" encoding="UTF-8"?>
+
 <root>
-  <beans>
-    <bean>
-      <name>A</name>
-      <age>1</age>
-    </bean>
-    <bean>
-      <name>B</name>
-      <age>2</age>
-    </bean>
-  </beans>
+  <name>A</name>
 </root>

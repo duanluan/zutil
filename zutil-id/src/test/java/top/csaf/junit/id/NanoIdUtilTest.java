@@ -5,9 +5,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import top.csaf.id.NanoIdUtil;
 
+import java.lang.reflect.Constructor;
 import java.util.Arrays;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Slf4j
@@ -43,5 +47,27 @@ class NanoIdUtilTest {
 
     /** {@link NanoIdUtil#randomNanoId() } */
     assertDoesNotThrow(() -> NanoIdUtil.randomNanoId());
+  }
+
+  @DisplayName("重试超出字典范围的随机字节")
+  @Test
+  void randomNanoIdRejectsBytesOutsideAlphabet() {
+    Random generator = new Random() {
+      private int calls;
+
+      @Override
+      public void nextBytes(byte[] bytes) {
+        Arrays.fill(bytes, (byte) (calls++ == 0 ? 1 : 0));
+      }
+    };
+
+    assertEquals("0", NanoIdUtil.randomNanoId(1, "0", generator));
+  }
+
+  @DisplayName("公共构造覆盖")
+  @Test
+  void testConstructor() throws Exception {
+    Constructor<NanoIdUtil> constructor = NanoIdUtil.class.getDeclaredConstructor();
+    assertNotNull(constructor.newInstance());
   }
 }
