@@ -11,7 +11,7 @@
 
 请在项目的依赖管理文件中添加 **ZUtil**。
 
-> 💡 **提示**: 当前最新版本为 `2.0.0-beta4`，请根据实际情况调整。
+> 💡 **提示**: 当前最新版本为 `2.0.0`，请根据实际情况调整。
 
 ### Maven
 
@@ -19,7 +19,7 @@
 <dependency>
   <groupId>top.csaf</groupId>
   <artifactId>zutil-all</artifactId>
-  <version>2.0.0-beta4</version>
+  <version>2.0.0</version>
 </dependency>
 ```
 
@@ -27,10 +27,10 @@
 
 ```groovy
 // Groovy DSL
-implementation 'top.csaf:zutil-all:2.0.0-beta4'
+implementation 'top.csaf:zutil-all:2.0.0'
 
 // Kotlin DSL
-implementation("top.csaf:zutil-all:2.0.0-beta4")
+implementation("top.csaf:zutil-all:2.0.0")
 ```
 
 ---
@@ -52,7 +52,7 @@ ZUtil 默认引入了 `slf4j-api` 和 `slf4j-simple` 以支持简单的日志输
 <dependency>
   <groupId>top.csaf</groupId>
   <artifactId>zutil-all</artifactId>
-  <version>2.0.0-beta4</version>
+  <version>2.0.0</version>
   <exclusions>
     <exclusion>
       <groupId>org.slf4j</groupId>
@@ -69,13 +69,13 @@ ZUtil 默认引入了 `slf4j-api` 和 `slf4j-simple` 以支持简单的日志输
 #### Gradle
 ```groovy
 // Groovy DSL
-implementation('top.csaf:zutil-all:2.0.0-beta4') {
+implementation('top.csaf:zutil-all:2.0.0') {
   exclude group: 'org.slf4j', module: 'slf4j-api'
   exclude group: 'org.slf4j', module: 'slf4j-simple'
 }
 
 // Kotlin DSL
-implementation("top.csaf:zutil-all:2.0.0-beta4") {
+implementation("top.csaf:zutil-all:2.0.0") {
   exclude(group = "org.slf4j", module = "slf4j-api")
   exclude(group = "org.slf4j", module = "slf4j-simple")
 }
